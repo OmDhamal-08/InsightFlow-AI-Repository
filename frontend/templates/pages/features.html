@@ -1,0 +1,175 @@
+{% extends "base_dashboard.html" %}
+
+{% block page_title %}Feature Engineering — AI BI Platform{% endblock %}
+{% block meta_description %}Interactive feature engineering. Extract datetime attributes, compute interactions, fit PCA projection, and run Mutual Information feature selection.{% endblock %}
+
+{% block dashboard_content %}
+<div class="space-y-8" id="features-page-root" data-dataset-id="{{ dataset_id }}">
+    <!-- ====== Page Header ====== -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+            <div class="flex items-center gap-2 text-xs text-gray-500 mb-1">
+                <a href="{{ url_for('upload_page') }}" class="hover:text-gray-300 transition-colors">Datasets</a>
+                <span>&bull;</span>
+                <span class="text-gray-400">Feature Engineering</span>
+            </div>
+            <h1 class="text-2xl font-bold text-white flex items-center gap-2.5">
+                🧪 Feature Engineering: <span id="dataset-name" class="gradient-text bg-gradient-to-r from-primary-400 to-purple-400">Loading...</span>
+            </h1>
+            <p class="mt-1 text-sm text-gray-400">Transform, combine, and select features to boost downstream machine learning model performance.</p>
+        </div>
+        <div>
+            <a href="{{ url_for('upload_page') }}" class="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-gray-300 bg-white/[0.05] border border-white/[0.08] rounded-xl hover:bg-white/[0.1] hover:text-white transition-all">
+                &larr; Back to Datasets
+            </a>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        
+        <!-- ====== Configurator Panel (Left) ====== -->
+        <div class="glass rounded-2xl border border-white/[0.06] p-5 h-fit space-y-5">
+            <h3 class="text-sm font-semibold text-gray-300">Transformation Configurator</h3>
+            
+            <!-- Feature Set Name -->
+            <div class="space-y-1.5">
+                <label for="feature-set-name" class="text-xs text-gray-400 font-medium">Feature Set Name</label>
+                <input type="text" id="feature-set-name" class="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-primary-500 transition-colors" placeholder="e.g. Engineered Features 1">
+            </div>
+
+            <!-- Engineering Method -->
+            <div class="space-y-1.5">
+                <label for="feature-method" class="text-xs text-gray-400 font-medium">Engineering Method</label>
+                <select id="feature-method" onchange="toggleMethodInputs()" class="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-primary-500 transition-colors">
+                    <option value="date">Datetime Split</option>
+                    <option value="interaction">Numeric Interaction Pair</option>
+                    <option value="polynomial">Polynomial Expansion (Squares/Cubes)</option>
+                    <option value="text">Text Character/Word Length</option>
+                    <option value="pca">Principal Component Analysis (PCA)</option>
+                    <option value="selection">Mutual Information Feature Selection</option>
+                </select>
+            </div>
+
+            <!-- DYNAMIC PARAMETER DIVS -->
+            <div id="method-params-wrapper" class="space-y-4 pt-2 border-t border-white/[0.04]">
+                
+                <!-- Datetime / Text Column Select -->
+                <div id="div-single-col" class="space-y-1.5">
+                    <label id="label-single-col" for="select-single-col" class="text-xs text-gray-400 font-medium">Select Column</label>
+                    <select id="select-single-col" class="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-primary-500 transition-colors">
+                        <!-- JS -->
+                    </select>
+                </div>
+
+                <!-- Interaction Columns Select -->
+                <div id="div-interaction-cols" class="hidden space-y-4">
+                    <div class="space-y-1.5">
+                        <label for="select-int-col-1" class="text-xs text-gray-400 font-medium">First Column (Numeric)</label>
+                        <select id="select-int-col-1" class="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-primary-500 transition-colors"></select>
+                    </div>
+                    <div class="space-y-1.5">
+                        <label for="select-int-col-2" class="text-xs text-gray-400 font-medium">Second Column (Numeric)</label>
+                        <select id="select-int-col-2" class="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-primary-500 transition-colors"></select>
+                    </div>
+                </div>
+
+                <!-- PCA / Polynomial Multi-select check list -->
+                <div id="div-multi-cols" class="hidden space-y-2">
+                    <label class="text-xs text-gray-400 font-medium">Select Features (Numeric)</label>
+                    <div id="checkboxes-multi-cols" class="max-h-48 overflow-y-auto border border-white/[0.08] rounded-xl p-3 bg-white/[0.01] space-y-2 scrollbar-thin">
+                        <!-- JS -->
+                    </div>
+                    
+                    <!-- PCA Components count -->
+                    <div id="pca-components-wrapper" class="hidden space-y-1.5 pt-2">
+                        <label for="pca-n-components" class="text-xs text-gray-400 font-medium">Number of Components</label>
+                        <input type="number" id="pca-n-components" value="2" min="1" class="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-primary-500 transition-colors">
+                    </div>
+                </div>
+
+                <!-- Feature Selection Target & K count -->
+                <div id="div-selection-params" class="hidden space-y-4">
+                    <div class="space-y-1.5">
+                        <label for="select-target-col" class="text-xs text-gray-400 font-medium">Select Target Variable (Y)</label>
+                        <select id="select-target-col" class="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-primary-500 transition-colors">
+                            <!-- JS -->
+                        </select>
+                    </div>
+                    <div class="space-y-1.5">
+                        <label for="selection-k-features" class="text-xs text-gray-400 font-medium">Select Top K Features</label>
+                        <input type="number" id="selection-k-features" value="5" min="1" class="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-primary-500 transition-colors">
+                    </div>
+                </div>
+
+            </div>
+
+            <button onclick="generateFeaturePreview()" class="w-full py-2.5 text-xs font-semibold text-white bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl hover:from-primary-600 hover:to-primary-700 shadow-md shadow-primary-500/10 transition-all flex items-center justify-center gap-1.5">
+                <span>Generate Preview</span>
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+            </button>
+        </div>
+
+        <!-- ====== Feature Preview Table (Right) ====== -->
+        <div class="xl:col-span-2 glass rounded-2xl border border-white/[0.06] p-6 flex flex-col justify-between min-h-[380px]">
+            <div class="flex items-center justify-between mb-4 flex-shrink-0">
+                <h3 class="text-sm font-semibold text-gray-300">Engineered Columns Preview</h3>
+                <span class="text-[9px] font-bold uppercase tracking-wider bg-white/[0.06] text-gray-500 px-2 py-0.5 rounded-full border border-white/[0.04]">Data Preview</span>
+            </div>
+
+            <!-- Preview Data Wrapper -->
+            <div id="preview-wrapper" class="flex-1 relative overflow-auto max-h-[260px] border border-dashed border-white/[0.05] rounded-xl mb-4 scrollbar-thin">
+                <table class="w-full text-xs text-left hidden" id="preview-table">
+                    <thead id="preview-thead">
+                        <!-- JS -->
+                    </thead>
+                    <tbody id="preview-tbody" class="divide-y divide-white/[0.04] text-gray-300">
+                        <!-- JS -->
+                    </tbody>
+                </table>
+                
+                <div id="preview-placeholder" class="absolute inset-0 flex items-center justify-center text-xs text-gray-500">
+                    🛠️ Select parameters and click "Generate Preview" to review engineered columns.
+                </div>
+                <div id="preview-loading" class="absolute inset-0 hidden flex flex-col items-center justify-center text-xs text-gray-500 space-y-2">
+                    <div class="w-8 h-8 rounded-full border-2 border-primary-500/20 border-t-primary-500 animate-spin"></div>
+                    <p>Executing mathematical transformations...</p>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex justify-end gap-3 flex-shrink-0">
+                <button id="apply-feature-set-btn" disabled onclick="applyFeatureSet()" class="px-5 py-2.5 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 disabled:hover:bg-emerald-600 rounded-xl transition-all flex items-center gap-1.5">
+                    <span>Apply & Save Dataset</span>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ====== Saved Feature Sets List ====== -->
+    <div class="glass rounded-2xl border border-white/[0.06] p-6 space-y-4">
+        <h3 class="text-sm font-semibold text-gray-300">Engineered Feature Sets</h3>
+        <div class="overflow-x-auto">
+            <table class="w-full text-xs text-left">
+                <thead>
+                    <tr class="border-b border-white/[0.06] text-gray-500 font-semibold uppercase">
+                        <th class="py-3 px-4">Name</th>
+                        <th class="py-3 px-3">Method</th>
+                        <th class="py-3 px-3">Count</th>
+                        <th class="py-3 px-3">Output File</th>
+                        <th class="py-3 px-3">Created</th>
+                    </tr>
+                </thead>
+                <tbody id="saved-feature-sets-tbody" class="divide-y divide-white/[0.04] text-gray-300">
+                    <!-- Hydrated by JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block page_scripts %}
+<script src="{{ url_for('static', path='js/features.js') }}"></script>
+{% endblock %}

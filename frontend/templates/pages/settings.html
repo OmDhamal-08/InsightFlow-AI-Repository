@@ -1,0 +1,221 @@
+{% extends "base_dashboard.html" %}
+
+{% block page_title %}Settings{% endblock %}
+{% block meta_description %}Manage your AI BI Platform account settings, profile, and preferences.{% endblock %}
+
+{% block dashboard_content %}
+<div class="space-y-8">
+    <!-- ====== Page Header ====== -->
+    <div>
+        <h1 class="text-2xl font-bold text-white">Settings</h1>
+        <p class="mt-1 text-sm text-gray-400">Manage your account and preferences.</p>
+    </div>
+
+    <!-- ====== Tabs Navigation ====== -->
+    <div class="flex items-center gap-1 p-1 rounded-xl bg-white/[0.03] border border-white/[0.06] w-fit">
+        <button onclick="switchSettingsTab('profile')" id="tab-profile"
+                class="settings-tab px-5 py-2 text-sm font-medium rounded-lg transition-all duration-200 text-white bg-white/[0.08]">
+            Profile
+        </button>
+        <button onclick="switchSettingsTab('security')" id="tab-security"
+                class="settings-tab px-5 py-2 text-sm font-medium rounded-lg transition-all duration-200 text-gray-400 hover:text-gray-200">
+            Security
+        </button>
+        <button onclick="switchSettingsTab('preferences')" id="tab-preferences"
+                class="settings-tab px-5 py-2 text-sm font-medium rounded-lg transition-all duration-200 text-gray-400 hover:text-gray-200">
+            Preferences
+        </button>
+    </div>
+
+    <!-- ====== Profile Tab ====== -->
+    <div id="panel-profile" class="settings-panel">
+        <div class="glass rounded-2xl border border-white/[0.06] p-6 md:p-8">
+            <form id="profile-form" class="space-y-6">
+                <!-- Avatar Section -->
+                <div class="flex items-center gap-5 pb-6 border-b border-white/[0.06]">
+                    <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center text-2xl font-bold text-white shadow-xl shadow-primary-500/20">
+                        {{ (user.username[0] if user and user.username else 'U') | upper }}
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-white">{{ user.full_name if user else 'User Name' }}</h3>
+                        <p class="text-sm text-gray-400">{{ user.email if user else 'user@example.com' }}</p>
+                        <button type="button" class="mt-2 text-xs text-primary-400 hover:text-primary-300 font-medium transition-colors">Change avatar</button>
+                    </div>
+                </div>
+
+                <!-- Form Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <!-- Full Name -->
+                    <div>
+                        <label for="settings-name" class="block text-sm font-medium text-gray-300 mb-1.5">Full Name</label>
+                        <input type="text" id="settings-name" value="{{ user.full_name if user else '' }}"
+                               class="w-full px-4 py-3 bg-white/[0.05] border border-white/[0.08] rounded-xl text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:border-primary-500/50 focus:ring-2 focus:ring-primary-500/20 transition-all duration-200"
+                               placeholder="Your full name">
+                    </div>
+
+                    <!-- Email (read-only) -->
+                    <div>
+                        <label for="settings-email" class="block text-sm font-medium text-gray-300 mb-1.5">Email Address</label>
+                        <input type="email" id="settings-email" value="{{ user.email if user else '' }}"
+                               class="w-full px-4 py-3 bg-white/[0.03] border border-white/[0.06] rounded-xl text-sm text-gray-500 cursor-not-allowed"
+                               disabled>
+                        <p class="mt-1 text-[11px] text-gray-600">Email cannot be changed</p>
+                    </div>
+
+                    <!-- Username (read-only) -->
+                    <div>
+                        <label for="settings-username" class="block text-sm font-medium text-gray-300 mb-1.5">Username</label>
+                        <input type="text" id="settings-username" value="{{ user.username if user else '' }}"
+                               class="w-full px-4 py-3 bg-white/[0.03] border border-white/[0.06] rounded-xl text-sm text-gray-500 cursor-not-allowed"
+                               disabled>
+                    </div>
+
+                    <!-- Company -->
+                    <div>
+                        <label for="settings-company" class="block text-sm font-medium text-gray-300 mb-1.5">Company</label>
+                        <input type="text" id="settings-company"
+                               class="w-full px-4 py-3 bg-white/[0.05] border border-white/[0.08] rounded-xl text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:border-primary-500/50 focus:ring-2 focus:ring-primary-500/20 transition-all duration-200"
+                               placeholder="Your company name">
+                    </div>
+
+                    <!-- Role/Title -->
+                    <div>
+                        <label for="settings-role" class="block text-sm font-medium text-gray-300 mb-1.5">Role / Title</label>
+                        <input type="text" id="settings-role"
+                               class="w-full px-4 py-3 bg-white/[0.05] border border-white/[0.08] rounded-xl text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:border-primary-500/50 focus:ring-2 focus:ring-primary-500/20 transition-all duration-200"
+                               placeholder="e.g. Data Scientist">
+                    </div>
+                </div>
+
+                <!-- Bio -->
+                <div>
+                    <label for="settings-bio" class="block text-sm font-medium text-gray-300 mb-1.5">Bio</label>
+                    <textarea id="settings-bio" rows="3"
+                              class="w-full px-4 py-3 bg-white/[0.05] border border-white/[0.08] rounded-xl text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:border-primary-500/50 focus:ring-2 focus:ring-primary-500/20 transition-all duration-200 resize-none"
+                              placeholder="Tell us about yourself..."></textarea>
+                </div>
+
+                <!-- Save Button -->
+                <div class="flex justify-end pt-2">
+                    <button type="submit" class="px-6 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl hover:from-primary-600 hover:to-primary-700 shadow-lg shadow-primary-500/20 hover:shadow-primary-500/30 transition-all duration-300 hover:-translate-y-0.5">
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ====== Security Tab ====== -->
+    <div id="panel-security" class="settings-panel hidden">
+        <div class="glass rounded-2xl border border-white/[0.06] p-6 md:p-8">
+            <h3 class="text-lg font-semibold text-white mb-1">Change Password</h3>
+            <p class="text-sm text-gray-400 mb-6">Update your password to keep your account secure.</p>
+
+            <form id="password-form" class="space-y-5 max-w-md">
+                <!-- Current Password -->
+                <div>
+                    <label for="current-password" class="block text-sm font-medium text-gray-300 mb-1.5">Current Password</label>
+                    <input type="password" id="current-password"
+                           class="w-full px-4 py-3 bg-white/[0.05] border border-white/[0.08] rounded-xl text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:border-primary-500/50 focus:ring-2 focus:ring-primary-500/20 transition-all duration-200"
+                           placeholder="••••••••" required>
+                </div>
+
+                <!-- New Password -->
+                <div>
+                    <label for="new-password" class="block text-sm font-medium text-gray-300 mb-1.5">New Password</label>
+                    <input type="password" id="new-password"
+                           class="w-full px-4 py-3 bg-white/[0.05] border border-white/[0.08] rounded-xl text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:border-primary-500/50 focus:ring-2 focus:ring-primary-500/20 transition-all duration-200"
+                           placeholder="••••••••" required>
+                </div>
+
+                <!-- Confirm New Password -->
+                <div>
+                    <label for="confirm-new-password" class="block text-sm font-medium text-gray-300 mb-1.5">Confirm New Password</label>
+                    <input type="password" id="confirm-new-password"
+                           class="w-full px-4 py-3 bg-white/[0.05] border border-white/[0.08] rounded-xl text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:border-primary-500/50 focus:ring-2 focus:ring-primary-500/20 transition-all duration-200"
+                           placeholder="••••••••" required>
+                </div>
+
+                <!-- Update Button -->
+                <div class="pt-2">
+                    <button type="submit" class="px-6 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl hover:from-primary-600 hover:to-primary-700 shadow-lg shadow-primary-500/20 hover:shadow-primary-500/30 transition-all duration-300 hover:-translate-y-0.5">
+                        Update Password
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ====== Preferences Tab ====== -->
+    <div id="panel-preferences" class="settings-panel hidden">
+        <div class="space-y-6">
+            <!-- Theme -->
+            <div class="glass rounded-2xl border border-white/[0.06] p-6 md:p-8">
+                <h3 class="text-lg font-semibold text-white mb-1">Appearance</h3>
+                <p class="text-sm text-gray-400 mb-5">Customize the look and feel of the platform.</p>
+
+                <div class="flex items-center justify-between p-4 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+                    <div>
+                        <p class="text-sm font-medium text-gray-300">Theme</p>
+                        <p class="text-xs text-gray-500 mt-0.5">Choose between dark and light mode</p>
+                    </div>
+                    <div class="flex items-center gap-2 p-1 rounded-lg bg-white/[0.05] border border-white/[0.06]">
+                        <button class="px-3 py-1.5 text-xs font-medium rounded-md bg-primary-500/20 text-primary-400 border border-primary-500/20">Dark</button>
+                        <button class="px-3 py-1.5 text-xs font-medium rounded-md text-gray-500 hover:text-gray-300 transition-colors">Light</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notifications -->
+            <div class="glass rounded-2xl border border-white/[0.06] p-6 md:p-8">
+                <h3 class="text-lg font-semibold text-white mb-1">Notifications</h3>
+                <p class="text-sm text-gray-400 mb-5">Manage how you receive notifications.</p>
+
+                <div class="space-y-4">
+                    {% set notifications = [
+                        {'id': 'notif-email', 'label': 'Email notifications', 'desc': 'Receive email alerts for important events', 'checked': true},
+                        {'id': 'notif-upload', 'label': 'Upload complete', 'desc': 'Notify when dataset upload and processing finishes', 'checked': true},
+                        {'id': 'notif-analysis', 'label': 'Analysis complete', 'desc': 'Notify when analysis or model training completes', 'checked': true},
+                        {'id': 'notif-reports', 'label': 'Report ready', 'desc': 'Notify when a report has been generated', 'checked': false}
+                    ] %}
+
+                    {% for notif in notifications %}
+                    <label class="flex items-center justify-between p-4 rounded-xl bg-white/[0.03] border border-white/[0.06] cursor-pointer hover:bg-white/[0.04] transition-colors">
+                        <div>
+                            <p class="text-sm font-medium text-gray-300">{{ notif.label }}</p>
+                            <p class="text-xs text-gray-500 mt-0.5">{{ notif.desc }}</p>
+                        </div>
+                        <div class="relative">
+                            <input type="checkbox" id="{{ notif.id }}" {{ 'checked' if notif.checked }} class="sr-only peer">
+                            <div class="w-10 h-6 rounded-full bg-white/[0.08] peer-checked:bg-primary-500 transition-colors duration-200"></div>
+                            <div class="absolute left-0.5 top-0.5 w-5 h-5 rounded-full bg-white shadow-sm transform peer-checked:translate-x-4 transition-transform duration-200"></div>
+                        </div>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Default Chart Library -->
+            <div class="glass rounded-2xl border border-white/[0.06] p-6 md:p-8">
+                <h3 class="text-lg font-semibold text-white mb-1">Analysis Defaults</h3>
+                <p class="text-sm text-gray-400 mb-5">Set default options for analysis and visualization.</p>
+
+                <div class="max-w-xs">
+                    <label for="chart-library" class="block text-sm font-medium text-gray-300 mb-1.5">Default Chart Library</label>
+                    <select id="chart-library"
+                            class="w-full px-4 py-3 bg-white/[0.05] border border-white/[0.08] rounded-xl text-sm text-gray-200 focus:outline-none focus:border-primary-500/50 focus:ring-2 focus:ring-primary-500/20 transition-all duration-200 appearance-none cursor-pointer"
+                            style="background-image: url('data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%236b7280%22%20stroke-width%3D%222%22%3E%3Cpath%20d%3D%22M6%209l6%206%206-6%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 12px center;">
+                        <option value="chartjs">Chart.js</option>
+                        <option value="plotly" selected>Plotly</option>
+                        <option value="both">Both</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block page_scripts %}
+<script src="{{ url_for('static', path='js/settings.js') }}"></script>
+{% endblock %}

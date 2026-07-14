@@ -1,0 +1,188 @@
+{% extends "base_dashboard.html" %}
+
+{% block page_title %}Data Quality Engine — AI BI Platform{% endblock %}
+{% block meta_description %}Data quality audit and actionable preprocessing recommendations. Check completeness, outliers, duplicates, and multicollinearity.{% endblock %}
+
+{% block dashboard_content %}
+<div class="space-y-8" id="quality-page-root" data-dataset-id="{{ dataset_id }}">
+    <!-- ====== Page Header ====== -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+            <div class="flex items-center gap-2 text-xs text-gray-500 mb-1">
+                <a href="{{ url_for('upload_page') }}" class="hover:text-gray-300 transition-colors">Datasets</a>
+                <span>&bull;</span>
+                <span class="text-gray-400">Data Quality</span>
+            </div>
+            <h1 class="text-2xl font-bold text-white flex items-center gap-2.5">
+                🛡️ Quality Audit: <span id="dataset-name" class="gradient-text bg-gradient-to-r from-primary-400 to-purple-400">Loading...</span>
+            </h1>
+            <p class="mt-1 text-sm text-gray-400">Identify missing values, duplicates, outliers, multicollinearity, and skewness issues.</p>
+        </div>
+        <div>
+            <a href="{{ url_for('upload_page') }}" class="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-gray-300 bg-white/[0.05] border border-white/[0.08] rounded-xl hover:bg-white/[0.1] hover:text-white transition-all">
+                &larr; Back to Datasets
+            </a>
+        </div>
+    </div>
+
+    <!-- ====== Status Block (Not Analyzed state) ====== -->
+    <div id="status-not-analyzed" class="hidden glass rounded-2xl border border-white/[0.06] p-12 text-center max-w-xl mx-auto animate-slide-up">
+        <div class="w-16 h-16 mx-auto rounded-2xl bg-primary-500/10 border border-primary-500/20 flex items-center justify-center mb-6">
+            <svg class="w-8 h-8 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+            </svg>
+        </div>
+        <h3 class="text-lg font-bold text-white mb-2">Quality Audit Not Performed</h3>
+        <p class="text-sm text-gray-400 mb-6">Run a multidimensional quality audit on this dataset to calculate completeness index, find duplicates, isolate outliers, and receive preprocessing recommendations.</p>
+        <button id="run-quality-btn" onclick="triggerQualityAnalysis()" class="w-full sm:w-auto px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl hover:from-primary-600 hover:to-primary-700 shadow-lg shadow-primary-500/25 transition-all flex items-center justify-center gap-2">
+            <span>Run Quality Audit</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        </button>
+    </div>
+
+    <!-- ====== Status Block (Loading state) ====== -->
+    <div id="status-quality-loading" class="hidden glass rounded-2xl border border-white/[0.06] p-12 text-center max-w-xl mx-auto">
+        <div class="w-12 h-12 mx-auto rounded-full border-4 border-primary-500/20 border-t-primary-500 animate-spin mb-6"></div>
+        <h3 class="text-lg font-bold text-white mb-2">Analyzing Quality Dimensions...</h3>
+        <p class="text-sm text-gray-400">Computing completeness matrix, outlier distributions, correlation coefficients, and class balance ratios...</p>
+    </div>
+
+    <!-- ====== Quality Results Dashboard (Active state) ====== -->
+    <div id="quality-results-dashboard" class="hidden space-y-8 animate-fade-in">
+        
+        <!-- Score & Summary block -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Composite Score Gauge (Left) -->
+            <div class="glass rounded-2xl border border-white/[0.06] p-6 flex flex-col items-center justify-center text-center">
+                <h3 class="text-sm font-semibold text-gray-400 mb-4">Composite Quality Score</h3>
+                <div class="relative w-36 h-36 flex items-center justify-center">
+                    <!-- Circular Progress Background -->
+                    <svg class="w-full h-full transform -rotate-90">
+                        <circle cx="72" cy="72" r="62" stroke="rgba(255,255,255,0.05)" stroke-width="10" fill="transparent" />
+                        <circle id="score-gauge-fill" cx="72" cy="72" r="62" stroke="#10b981" stroke-width="10" fill="transparent"
+                                stroke-dasharray="390" stroke-dashoffset="390" stroke-linecap="round" class="transition-all duration-1000 ease-out" />
+                    </svg>
+                    <div class="absolute text-center">
+                        <span id="score-text" class="text-4xl font-extrabold text-white">0%</span>
+                        <p id="score-label" class="text-[10px] uppercase font-bold tracking-wider text-emerald-400 mt-1">Excellent</p>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-500 mt-4 max-w-xs">Calculated based on completeness, uniqueness, outliers, feature independence, and normality.</p>
+            </div>
+
+            <!-- Actionable Preprocessing Recommendations (Right, takes remaining space) -->
+            <div class="lg:col-span-2 glass rounded-2xl border border-white/[0.06] p-6 flex flex-col h-[270px]">
+                <div class="flex items-center justify-between mb-4 flex-shrink-0">
+                    <h3 class="text-sm font-semibold text-gray-300">Actionable Preprocessing Recommendations</h3>
+                    <span id="rec-count-badge" class="text-[10px] font-bold bg-white/[0.06] text-gray-500 px-2 py-0.5 rounded-full">0 issues</span>
+                </div>
+                <div id="recommendations-container" class="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-thin">
+                    <!-- Hydrated by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Detail Analysis Tabs -->
+        <div class="glass rounded-2xl border border-white/[0.06] overflow-hidden">
+            <!-- Tabs Headers -->
+            <div class="flex border-b border-white/[0.06] bg-white/[0.01]">
+                <button onclick="switchTab('completeness')" id="tab-btn-completeness" class="tab-btn active px-6 py-4 text-xs font-semibold uppercase tracking-wider text-primary-400 border-b-2 border-primary-500 transition-all">
+                    Completeness
+                </button>
+                <button onclick="switchTab('outliers')" id="tab-btn-outliers" class="tab-btn px-6 py-4 text-xs font-semibold uppercase tracking-wider text-gray-400 border-b-2 border-transparent hover:text-gray-200 transition-all">
+                    Outliers
+                </button>
+                <button onclick="switchTab('distribution')" id="tab-btn-distribution" class="tab-btn px-6 py-4 text-xs font-semibold uppercase tracking-wider text-gray-400 border-b-2 border-transparent hover:text-gray-200 transition-all">
+                    Distribution & Skew
+                </button>
+            </div>
+
+            <!-- Tabs Content -->
+            <div class="p-6">
+                <!-- Tab: Completeness -->
+                <div id="tab-content-completeness" class="tab-content space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h4 class="text-sm font-semibold text-gray-300">Missing Values Summary</h4>
+                        <span id="duplicate-stats-text" class="text-xs text-gray-500">Duplicate rows: 0 (0.0%)</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
+                            <thead>
+                                <tr class="border-b border-white/[0.06] text-xs font-semibold uppercase text-gray-500">
+                                    <th class="py-2.5 px-4">Column</th>
+                                    <th class="py-2.5 px-4">Null Count</th>
+                                    <th class="py-2.5 px-4">Fill Percentage</th>
+                                    <th class="py-2.5 px-4">Visual Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="completeness-tbody" class="divide-y divide-white/[0.04]">
+                                <!-- Injected by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Tab: Outliers -->
+                <div id="tab-content-outliers" class="tab-content hidden space-y-4">
+                    <div>
+                        <h4 class="text-sm font-semibold text-gray-300">Outlier Detection (Tukey's IQR Method)</h4>
+                        <p class="text-xs text-gray-500 mt-0.5">Rows containing values outside $[Q1 - 1.5 \times IQR, Q3 + 1.5 \times IQR]$.</p>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
+                            <thead>
+                                <tr class="border-b border-white/[0.06] text-xs font-semibold uppercase text-gray-500">
+                                    <th class="py-2.5 px-4">Numeric Column</th>
+                                    <th class="py-2.5 px-4">Outlier Count</th>
+                                    <th class="py-2.5 px-4">Outlier Percentage</th>
+                                    <th class="py-2.5 px-4">Interquartile Bounds (Lower / Upper)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="outliers-tbody" class="divide-y divide-white/[0.04]">
+                                <!-- Injected by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Tab: Distribution & Redundancy -->
+                <div id="tab-content-distribution" class="tab-content hidden grid grid-cols-1 md:grid-cols-2 gap-6">
+                    
+                    <!-- Skewness (Left) -->
+                    <div class="space-y-3">
+                        <h4 class="text-sm font-semibold text-gray-300 border-b border-white/[0.06] pb-2">Skewness (Normality Check)</h4>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-xs text-left">
+                                <thead>
+                                    <tr class="text-gray-500 font-semibold uppercase">
+                                        <th class="py-2 px-3">Column</th>
+                                        <th class="py-2 px-3">Skewness</th>
+                                        <th class="py-2 px-3">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="skewness-tbody" class="divide-y divide-white/[0.04] text-gray-300">
+                                    <!-- Injected by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Multicollinearity & Correlation Pairs (Right) -->
+                    <div class="space-y-3">
+                        <h4 class="text-sm font-semibold text-gray-300 border-b border-white/[0.06] pb-2">Multicollinear Feature Pairs</h4>
+                        <div id="multicollinearity-container" class="space-y-3.5">
+                            <!-- Injected by JS -->
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block page_scripts %}
+<script src="{{ url_for('static', path='js/quality.js') }}"></script>
+{% endblock %}

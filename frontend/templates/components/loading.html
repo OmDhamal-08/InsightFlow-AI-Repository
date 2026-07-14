@@ -1,0 +1,24 @@
+<!-- Loading Overlay -->
+<div id="loading-overlay" class="fixed inset-0 z-[100] bg-surface-900/80 backdrop-blur-sm flex flex-col items-center justify-center hidden" role="status" aria-label="Loading">
+    <!-- Spinner -->
+    <div class="relative">
+        <div class="w-16 h-16 rounded-full border-[3px] border-white/[0.08]"></div>
+        <div class="absolute inset-0 w-16 h-16 rounded-full border-[3px] border-transparent border-t-primary-500 border-r-primary-500/40 animate-spin"></div>
+        <div class="absolute inset-2 w-12 h-12 rounded-full border-[2px] border-transparent border-b-purple-500 border-l-purple-500/40 animate-spin-slow" style="animation-direction: reverse;"></div>
+    </div>
+
+    <!-- Loading Text -->
+    <p id="loading-text" class="mt-6 text-sm font-medium text-gray-400 animate-pulse">Loading...</p>
+</div>
+
+<!-- Inline Loader (for use inside cards/sections) -->
+<!-- Usage: Copy this into a card and toggle visibility -->
+<!--
+<div class="inline-loader flex flex-col items-center justify-center py-12">
+    <div class="relative">
+        <div class="w-10 h-10 rounded-full border-[2px] border-white/[0.08]"></div>
+        <div class="absolute inset-0 w-10 h-10 rounded-full border-[2px] border-transparent border-t-primary-500 animate-spin"></div>
+    </div>
+    <p class="mt-4 text-xs text-gray-500">Loading data...</p>
+</div>
+-->

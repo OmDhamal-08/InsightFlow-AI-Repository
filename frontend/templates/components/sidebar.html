@@ -1,0 +1,105 @@
+<!-- Sidebar Navigation -->
+<div class="h-full flex flex-col glass-sidebar border-r border-white/[0.06] overflow-y-auto">
+    <!-- Logo -->
+    <div class="flex items-center gap-3 px-5 py-5 border-b border-white/[0.06]">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-500 to-blue-600 flex items-center justify-center shadow-lg shadow-primary-500/25">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+        </div>
+        <div>
+            <h1 class="text-base font-bold text-white tracking-tight">AI BI Platform</h1>
+            <p class="text-[10px] font-medium text-primary-400 uppercase tracking-widest">Intelligence Suite</p>
+        </div>
+        <!-- Close button for mobile -->
+        <button onclick="toggleSidebar()" class="lg:hidden ml-auto p-1.5 rounded-lg hover:bg-white/10 transition-colors">
+            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </button>
+    </div>
+
+    <!-- Main Navigation -->
+    <nav class="flex-1 px-3 py-4 space-y-1">
+        <p class="px-3 mb-2 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Main Menu</p>
+
+        <!-- Dashboard -->
+        <a href="{{ url_for('dashboard_page') }}"
+           class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 {{ 'sidebar-link-active bg-primary-500/10 text-primary-400 border border-primary-500/20' if active_page == 'dashboard' else 'text-gray-400 hover:text-gray-200 hover:bg-white/[0.05]' }}">
+            <span class="flex items-center justify-center w-8 h-8 rounded-lg {{ 'bg-primary-500/20' if active_page == 'dashboard' else 'bg-white/[0.05] group-hover:bg-white/[0.08]' }} transition-colors duration-200">
+                <span class="text-base">📊</span>
+            </span>
+            Dashboard
+        </a>
+
+        <!-- Datasets -->
+        <a href="{{ url_for('upload_page') }}"
+           class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 {{ 'sidebar-link-active bg-primary-500/10 text-primary-400 border border-primary-500/20' if active_page == 'upload' else 'text-gray-400 hover:text-gray-200 hover:bg-white/[0.05]' }}">
+            <span class="flex items-center justify-center w-8 h-8 rounded-lg {{ 'bg-primary-500/20' if active_page == 'upload' else 'bg-white/[0.05] group-hover:bg-white/[0.08]' }} transition-colors duration-200">
+                <span class="text-base">📁</span>
+            </span>
+            Datasets
+        </a>
+
+        <p class="px-3 mt-5 mb-2 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Analytics</p>
+
+        <!-- Analysis -->
+        <span class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 cursor-not-allowed" title="Coming in Phase 5+">
+            <span class="flex items-center justify-center w-8 h-8 rounded-lg bg-white/[0.03]">
+                <span class="text-base opacity-40">📈</span>
+            </span>
+            <span class="flex-1">Analysis</span>
+            <span class="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-white/[0.05] text-gray-500">SOON</span>
+        </span>
+
+        <!-- AutoML -->
+        <span class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 cursor-not-allowed" title="Coming in Phase 10">
+            <span class="flex items-center justify-center w-8 h-8 rounded-lg bg-white/[0.03]">
+                <span class="text-base opacity-40">🤖</span>
+            </span>
+            <span class="flex-1">AutoML</span>
+            <span class="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-white/[0.05] text-gray-500">SOON</span>
+        </span>
+
+        <!-- Reports -->
+        <span class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 cursor-not-allowed" title="Coming in Phase 16">
+            <span class="flex items-center justify-center w-8 h-8 rounded-lg bg-white/[0.03]">
+                <span class="text-base opacity-40">📋</span>
+            </span>
+            <span class="flex-1">Reports</span>
+            <span class="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-white/[0.05] text-gray-500">SOON</span>
+        </span>
+
+        <!-- AI Chat -->
+        <span class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 cursor-not-allowed" title="Coming in Phase 15">
+            <span class="flex items-center justify-center w-8 h-8 rounded-lg bg-white/[0.03]">
+                <span class="text-base opacity-40">💬</span>
+            </span>
+            <span class="flex-1">AI Chat</span>
+            <span class="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-white/[0.05] text-gray-500">SOON</span>
+        </span>
+    </nav>
+
+    <!-- Bottom Section -->
+    <div class="px-3 py-4 border-t border-white/[0.06] space-y-1">
+        <!-- Settings -->
+        <a href="{{ url_for('settings_page') }}"
+           class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 {{ 'sidebar-link-active bg-primary-500/10 text-primary-400 border border-primary-500/20' if active_page == 'settings' else 'text-gray-400 hover:text-gray-200 hover:bg-white/[0.05]' }}">
+            <span class="flex items-center justify-center w-8 h-8 rounded-lg {{ 'bg-primary-500/20' if active_page == 'settings' else 'bg-white/[0.05] group-hover:bg-white/[0.08]' }} transition-colors duration-200">
+                <span class="text-base">⚙️</span>
+            </span>
+            Settings
+        </a>
+
+        <!-- User Info -->
+        <div class="flex items-center gap-3 px-3 py-3 mt-2 rounded-xl bg-white/[0.03]">
+            <div id="sidebar-avatar-letter" class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center text-xs font-bold text-white">
+                {{ (user.username[0] if user and user.username else 'U') | upper }}
+            </div>
+            <div class="flex-1 min-w-0">
+                <p id="sidebar-username" class="text-xs font-medium text-gray-300 truncate">{{ user.username if user else 'User' }}</p>
+                <p id="sidebar-email" class="text-[10px] text-gray-500 truncate">{{ user.email if user else 'user@example.com' }}</p>
+            </div>
+        </div>
+    </div>
+</div>
