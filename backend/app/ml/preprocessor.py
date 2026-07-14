@@ -25,14 +25,16 @@ class DatasetPreprocessor:
         
         # Calculate summary statistics before
         before_summary = cls._compute_summary_stats(df_before)
-        before_rows = df_before.head(5).where(df_before.notna(), None).to_dict(orient="records")
+        before_rows_raw = df_before.head(5).to_dict(orient="records")
+        before_rows = [{k: cls._to_python_type(v) for k, v in row.items()} for row in before_rows_raw]
 
         # Apply transformations
         df_after, _ = cls.apply(df.copy(), steps)
 
         # Calculate summary statistics after
         after_summary = cls._compute_summary_stats(df_after)
-        after_rows = df_after.head(5).where(df_after.notna(), None).to_dict(orient="records")
+        after_rows_raw = df_after.head(5).to_dict(orient="records")
+        after_rows = [{k: cls._to_python_type(v) for k, v in row.items()} for row in after_rows_raw]
 
         return {
             "before": {
@@ -348,9 +350,11 @@ class DatasetPreprocessor:
             series = df[col]
             nulls = int(series.isna().sum())
             if pd.api.types.is_numeric_dtype(series):
+                mean_val = series.mean()
+                std_val = series.std()
                 summary[col] = {
-                    "mean": float(series.mean()) if not series.dropna().empty else 0.0,
-                    "std": float(series.std()) if not series.dropna().empty else 0.0,
+                    "mean": float(mean_val) if pd.notna(mean_val) else None,
+                    "std": float(std_val) if pd.notna(std_val) else None,
                     "null_count": nulls,
                 }
             else:

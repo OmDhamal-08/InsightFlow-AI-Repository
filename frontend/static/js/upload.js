@@ -295,15 +295,33 @@ async function loadDatasets() {
 /* ================================================
    Preview Dataset
    ================================================ */
+let _previewDatasetId = null;
+
 async function previewDataset(datasetId) {
+    _previewDatasetId = datasetId;
+    const rowCountSelect = document.getElementById('preview-row-count');
+    const rows = rowCountSelect ? parseInt(rowCountSelect.value) : 10;
+    await _fetchAndRenderPreview(datasetId, rows);
+}
+
+function reloadPreview() {
+    if (!_previewDatasetId) return;
+    const rowCountSelect = document.getElementById('preview-row-count');
+    const rows = rowCountSelect ? parseInt(rowCountSelect.value) : 10;
+    _fetchAndRenderPreview(_previewDatasetId, rows);
+}
+
+async function _fetchAndRenderPreview(datasetId, rows) {
     const previewSection = document.getElementById('data-preview-section');
     const thead = document.getElementById('preview-thead');
     const tbody = document.getElementById('preview-tbody');
+    const rowInfo = document.getElementById('preview-row-info');
 
     if (!previewSection || !thead || !tbody) return;
 
     try {
-        const resp = await apiGet(`/datasets/${datasetId}/preview?rows=10`);
+        const queryParam = rows > 0 ? `?rows=${rows}` : '?rows=100000';
+        const resp = await apiGet(`/datasets/${datasetId}/preview${queryParam}`);
         if (!resp.ok) {
             const err = await resp.json().catch(() => ({}));
             alert(err.detail || 'Failed to load preview');
@@ -311,6 +329,11 @@ async function previewDataset(datasetId) {
         }
 
         const data = await resp.json();
+
+        // Show row info
+        if (rowInfo) {
+            rowInfo.textContent = `(showing ${data.rows.length} of ${data.total_rows || data.rows.length} rows, ${data.columns.length} columns)`;
+        }
 
         // Render headers
         thead.innerHTML = `

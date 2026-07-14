@@ -27,6 +27,76 @@
     --radius-full: 9999px;
     --shadow-glow: 0 0 40px -10px rgba(59, 130, 246, 0.15);
     --transition-base: 0.3s ease;
+
+    /* Tailwind Gray Scale Variable Mapping (Dark Theme Default) */
+    --gray-50: #f8fafc;
+    --gray-100: #f1f5f9;
+    --gray-200: #e2e8f0;
+    --gray-300: #cbd5e1;
+    --gray-400: #94a3b8;
+    --gray-500: #64748b;
+    --gray-600: #475569;
+    --gray-700: #334155;
+    --gray-800: #1e293b;
+    --gray-900: #0f172a;
+}
+
+/* Light Theme Variable Overrides */
+html.light {
+    color-scheme: light;
+    --color-bg-primary: #f8fafc;        /* slate-50 */
+    --color-bg-secondary: #ffffff;      /* white */
+    --color-bg-tertiary: #f1f5f9;       /* slate-100 */
+    --color-text-primary: #0f172a;      /* slate-900 */
+    --color-text-secondary: #475569;    /* slate-600 */
+    --color-text-muted: #94a3b8;        /* slate-400 */
+    --color-border: rgba(15, 23, 42, 0.08);
+    --color-border-subtle: rgba(15, 23, 42, 0.04);
+
+    /* Tailwind Gray Scale Variable Mapping (Light Theme) */
+    --gray-50: #0f172a;
+    --gray-100: #1e293b;
+    --gray-200: #334155;
+    --gray-300: #475569;
+    --gray-400: #64748b;
+    --gray-500: #94a3b8;
+    --gray-600: #cbd5e1;
+    --gray-700: #e2e8f0;
+    --gray-800: #f1f5f9;
+    --gray-900: #f8fafc;
+}
+
+/* Premium Light Theme Glassmorphism Overrides */
+html.light .glass {
+    background: rgba(255, 255, 255, 0.7) !important;
+    border-color: rgba(15, 23, 42, 0.08) !important;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03) !important;
+}
+
+html.light .glass-sidebar {
+    background: rgba(248, 250, 252, 0.9) !important;
+    border-color: rgba(15, 23, 42, 0.08) !important;
+}
+
+html.light .glass-strong {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border-color: rgba(15, 23, 42, 0.08) !important;
+}
+
+html.light .card {
+    background: rgba(255, 255, 255, 0.8) !important;
+    border-color: rgba(15, 23, 42, 0.06) !important;
+}
+
+/* Light Theme Scrollbars */
+html.light ::-webkit-scrollbar-thumb {
+    background: rgba(15, 23, 42, 0.1);
+}
+html.light ::-webkit-scrollbar-thumb:hover {
+    background: rgba(15, 23, 42, 0.2);
+}
+html.light * {
+    scrollbar-color: rgba(15, 23, 42, 0.1) transparent;
 }
 
 /* ---- Reset / Normalize ---- */
@@ -225,11 +295,53 @@ input[type="url"],
 textarea,
 select {
     font-family: 'Inter', system-ui, sans-serif;
+    color-scheme: dark;
+}
+
+html.light input[type="text"],
+html.light input[type="email"],
+html.light input[type="password"],
+html.light input[type="search"],
+html.light input[type="number"],
+html.light input[type="url"],
+html.light textarea,
+html.light select {
+    color-scheme: light;
+}
+
+/* Global select styling for proper visibility in both themes */
+select {
+    background-color: var(--color-bg-secondary);
+    color: var(--color-text-primary);
+    border-color: var(--color-border);
 }
 
 select option {
-    background-color: #1e293b; /* slate-800 dark bg */
-    color: #cbd5e1;            /* slate-300 light text */
+    background-color: var(--color-bg-secondary);
+    color: var(--color-text-primary);
+    padding: 8px 12px;
+}
+
+select option:hover,
+select option:checked {
+    background-color: var(--color-bg-tertiary);
+}
+
+/* Light theme select overrides */
+html.light select {
+    background-color: #ffffff;
+    color: #1e293b;
+    border-color: rgba(15, 23, 42, 0.15);
+}
+
+html.light select option {
+    background-color: #ffffff;
+    color: #1e293b;
+}
+
+html.light select option:hover,
+html.light select option:checked {
+    background-color: #f1f5f9;
 }
 
 input::placeholder,
@@ -492,4 +604,51 @@ tbody td {
 /* ---- Transition Utilities ---- */
 .transition-smooth {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ---- Light Mode Tailwind Class Overrides (Contrast Adjustments) ---- */
+html.light .text-white:not(.btn):not(.btn-primary):not(.btn-danger):not(.badge):not(button):not(.nav-link):not(.sidebar-link):not(.gradient-text):not(.text-white-keep) {
+    color: #0f172a !important;
+}
+
+html.light [class*="border-white/[0.0"] {
+    border-color: rgba(15, 23, 42, 0.08) !important;
+}
+html.light [class*="border-white/10"] {
+    border-color: rgba(15, 23, 42, 0.12) !important;
+}
+html.light [class*="bg-white/[0.0"] {
+    background-color: rgba(15, 23, 42, 0.03) !important;
+}
+html.light [class*="bg-white/10"], html.light [class*="bg-white/5"] {
+    background-color: rgba(15, 23, 42, 0.05) !important;
+}
+html.light .sidebar-link-active {
+    background-color: rgba(59, 130, 246, 0.08) !important;
+    color: #2563eb !important;
+}
+html.light .sidebar-link-active span {
+    background-color: rgba(59, 130, 246, 0.15) !important;
+}
+html.light input::placeholder,
+html.light textarea::placeholder {
+    color: #94a3b8 !important;
+}
+
+/* ---- Theme Toggle Icon Visibility Rules ---- */
+html.light #theme-moon-icon,
+html.light #sidebar-theme-moon-icon {
+    display: inline-block !important;
+}
+html.light #theme-sun-icon,
+html.light #sidebar-theme-sun-icon {
+    display: none !important;
+}
+html:not(.light) #theme-moon-icon,
+html:not(.light) #sidebar-theme-moon-icon {
+    display: none !important;
+}
+html:not(.light) #theme-sun-icon,
+html:not(.light) #sidebar-theme-sun-icon {
+    display: inline-block !important;
 }

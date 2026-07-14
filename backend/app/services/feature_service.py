@@ -71,7 +71,19 @@ class FeatureService:
         # If method is 'selection', all other features are dropped, so we return the final df structure
         preview_df = processed_df if method == "selection" else processed_df[new_col_names]
         
-        preview_rows = preview_df.head(5).where(preview_df.notna(), None).to_dict(orient="records")
+        preview_rows_raw = preview_df.head(5).to_dict(orient="records")
+        
+        import numpy as np
+        def to_json_val(v):
+            if pd.isna(v):
+                return None
+            if isinstance(v, (np.integer, np.int64, np.int32, np.int16, np.int8)):
+                return int(v)
+            if isinstance(v, (np.floating, np.float64, np.float32)):
+                return float(v)
+            return v
+            
+        preview_rows = [{k: to_json_val(v) for k, v in row.items()} for row in preview_rows_raw]
 
         preview_response = {
             "columns": list(preview_df.columns),

@@ -233,6 +233,7 @@ async def datasets_profile_page(request: Request, dataset_id: str):
         request, "pages/profiling.html", {
             "title": "Dataset Profiling",
             "active_page": "upload",
+            "active_subpage": "profile",
             "dataset_id": dataset_id
         }
     )
@@ -247,6 +248,7 @@ async def datasets_quality_page(request: Request, dataset_id: str):
         request, "pages/quality.html", {
             "title": "Data Quality Engine",
             "active_page": "upload",
+            "active_subpage": "quality",
             "dataset_id": dataset_id
         }
     )
@@ -261,6 +263,7 @@ async def datasets_preprocess_page(request: Request, dataset_id: str):
         request, "pages/preprocessing.html", {
             "title": "Smart Preprocessing",
             "active_page": "upload",
+            "active_subpage": "preprocess",
             "dataset_id": dataset_id
         }
     )
@@ -275,6 +278,7 @@ async def datasets_eda_page(request: Request, dataset_id: str):
         request, "pages/eda.html", {
             "title": "Exploratory Data Analysis",
             "active_page": "upload",
+            "active_subpage": "eda",
             "dataset_id": dataset_id
         }
     )
@@ -289,6 +293,7 @@ async def datasets_features_page(request: Request, dataset_id: str):
         request, "pages/features.html", {
             "title": "Feature Engineering",
             "active_page": "upload",
+            "active_subpage": "features",
             "dataset_id": dataset_id
         }
     )

@@ -109,10 +109,20 @@
     <!-- ====== Data Preview (hidden by default) ====== -->
     <div id="data-preview-section" class="hidden glass rounded-2xl border border-white/[0.06] overflow-hidden">
         <div class="flex items-center justify-between px-6 py-4 border-b border-white/[0.06]">
-            <h3 class="text-sm font-semibold text-gray-300">Data Preview</h3>
-            <button onclick="document.getElementById('data-preview-section').classList.add('hidden')" class="p-1.5 rounded-lg hover:bg-white/10 text-gray-500 hover:text-gray-300 transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-            </button>
+            <h3 class="text-sm font-semibold text-gray-300">Data Preview <span id="preview-row-info" class="text-xs text-gray-500 font-normal ml-2"></span></h3>
+            <div class="flex items-center gap-3">
+                <label for="preview-row-count" class="text-xs text-gray-400">Rows:</label>
+                <select id="preview-row-count" onchange="reloadPreview()" class="themed-select bg-surface-700 border border-white/[0.1] rounded-lg px-2.5 py-1 text-xs text-gray-200 focus:outline-none focus:border-primary-500 transition-colors">
+                    <option value="10" selected>10</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                    <option value="500">500</option>
+                    <option value="0">All</option>
+                </select>
+                <button onclick="document.getElementById('data-preview-section').classList.add('hidden')" class="p-1.5 rounded-lg hover:bg-white/10 text-gray-500 hover:text-gray-300 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
         </div>
         <div class="p-6 overflow-x-auto">
             <table id="preview-table" class="w-full text-sm">

@@ -341,20 +341,23 @@ async function applyPipeline() {
  */
 function renderStatsTable(tbodyId, summary) {
     const tbody = document.getElementById(tbodyId);
-    if (!tbody) return;
+    if (!tbody || !summary) return;
 
     const cols = Object.keys(summary);
     tbody.innerHTML = cols.map(col => {
-        const stats = summary[col];
-        const meanText = stats.mean !== null ? stats.mean.toFixed(2) : '--';
-        const stdText = stats.std !== null ? stats.std.toFixed(2) : '--';
+        const stats = summary[col] || {};
+        const mean = stats.mean;
+        const std = stats.std;
+        const meanText = (mean !== null && mean !== undefined && !isNaN(mean)) ? Number(mean).toFixed(2) : '--';
+        const stdText = (std !== null && std !== undefined && !isNaN(std)) ? Number(std).toFixed(2) : '--';
+        const nullCount = stats.null_count != null ? stats.null_count : '--';
 
         return `
             <tr>
                 <td class="py-2 px-3 font-mono font-medium text-white">${col}</td>
                 <td class="py-2 px-3">${meanText}</td>
                 <td class="py-2 px-3">${stdText}</td>
-                <td class="py-2 px-3">${stats.null_count}</td>
+                <td class="py-2 px-3">${nullCount}</td>
             </tr>
         `;
     }).join('');

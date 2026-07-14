@@ -44,40 +44,44 @@
         <p class="px-3 mt-5 mb-2 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Analytics</p>
 
         <!-- Analysis -->
-        <span class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 cursor-not-allowed" title="Coming in Phase 5+">
-            <span class="flex items-center justify-center w-8 h-8 rounded-lg bg-white/[0.03]">
-                <span class="text-base opacity-40">📈</span>
+        <a href="#" onclick="showComingSoonAlert('Interactive Analysis', '5+'); return false;"
+           class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-400 hover:text-gray-200 hover:bg-white/[0.05] transition-all duration-200">
+            <span class="flex items-center justify-center w-8 h-8 rounded-lg bg-white/[0.05] group-hover:bg-white/[0.08] transition-colors duration-200">
+                <span class="text-base">📈</span>
             </span>
             <span class="flex-1">Analysis</span>
-            <span class="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-white/[0.05] text-gray-500">SOON</span>
-        </span>
+            <span class="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-primary-500/10 text-primary-400">SOON</span>
+        </a>
 
         <!-- AutoML -->
-        <span class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 cursor-not-allowed" title="Coming in Phase 10">
-            <span class="flex items-center justify-center w-8 h-8 rounded-lg bg-white/[0.03]">
-                <span class="text-base opacity-40">🤖</span>
+        <a href="#" onclick="showComingSoonAlert('AutoML Engine', '10'); return false;"
+           class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-400 hover:text-gray-200 hover:bg-white/[0.05] transition-all duration-200">
+            <span class="flex items-center justify-center w-8 h-8 rounded-lg bg-white/[0.05] group-hover:bg-white/[0.08] transition-colors duration-200">
+                <span class="text-base">🤖</span>
             </span>
             <span class="flex-1">AutoML</span>
-            <span class="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-white/[0.05] text-gray-500">SOON</span>
-        </span>
+            <span class="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-primary-500/10 text-primary-400">SOON</span>
+        </a>
 
         <!-- Reports -->
-        <span class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 cursor-not-allowed" title="Coming in Phase 16">
-            <span class="flex items-center justify-center w-8 h-8 rounded-lg bg-white/[0.03]">
-                <span class="text-base opacity-40">📋</span>
+        <a href="#" onclick="showComingSoonAlert('Report Generator', '16'); return false;"
+           class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-400 hover:text-gray-200 hover:bg-white/[0.05] transition-all duration-200">
+            <span class="flex items-center justify-center w-8 h-8 rounded-lg bg-white/[0.05] group-hover:bg-white/[0.08] transition-colors duration-200">
+                <span class="text-base">📋</span>
             </span>
             <span class="flex-1">Reports</span>
-            <span class="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-white/[0.05] text-gray-500">SOON</span>
-        </span>
+            <span class="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-primary-500/10 text-primary-400">SOON</span>
+        </a>
 
         <!-- AI Chat -->
-        <span class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 cursor-not-allowed" title="Coming in Phase 15">
-            <span class="flex items-center justify-center w-8 h-8 rounded-lg bg-white/[0.03]">
-                <span class="text-base opacity-40">💬</span>
+        <a href="#" onclick="showComingSoonAlert('AI Business Assistant', '15'); return false;"
+           class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-400 hover:text-gray-200 hover:bg-white/[0.05] transition-all duration-200">
+            <span class="flex items-center justify-center w-8 h-8 rounded-lg bg-white/[0.05] group-hover:bg-white/[0.08] transition-colors duration-200">
+                <span class="text-base">💬</span>
             </span>
             <span class="flex-1">AI Chat</span>
-            <span class="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-white/[0.05] text-gray-500">SOON</span>
-        </span>
+            <span class="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-primary-500/10 text-primary-400">SOON</span>
+        </a>
     </nav>
 
     <!-- Bottom Section -->
@@ -90,6 +94,16 @@
             </span>
             Settings
         </a>
+
+        <!-- Theme Toggle -->
+        <button onclick="toggleTheme()"
+           class="sidebar-link w-full text-left group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 text-gray-400 hover:text-gray-200 hover:bg-white/[0.05]">
+            <span class="flex items-center justify-center w-8 h-8 rounded-lg bg-white/[0.05] group-hover:bg-white/[0.08] transition-colors duration-200">
+                <span id="sidebar-theme-moon-icon" class="text-base">🌙</span>
+                <span id="sidebar-theme-sun-icon" class="text-base">☀️</span>
+            </span>
+            <span id="sidebar-theme-text">Toggle Theme</span>
+        </button>
 
         <!-- User Info -->
         <div class="flex items-center gap-3 px-3 py-3 mt-2 rounded-xl bg-white/[0.03]">
