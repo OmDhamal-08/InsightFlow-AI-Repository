@@ -196,7 +196,7 @@ function renderProfilingDashboard(data) {
 
                 statsHtml = `
                     <div class="text-xs">
-                        <span class="text-gray-500">Most Frequent:</span> <code class="px-1.5 py-0.5 rounded bg-white/[0.04] text-primary-300 font-mono text-[11px]">${topVal}</code>
+                        <span class="text-gray-500">Most Frequent:</span> <code class="px-1.5 py-0.5 rounded bg-white/[0.04] text-primary-300 font-mono text-[11px]">${escapeHtml(topVal)}</code>
                         <span class="text-gray-500 ml-3">Occurrences:</span> <span class="font-medium text-white">${freq}${freqPctStr}</span>
                         ${dateRangeHtml}
                     </div>
@@ -205,7 +205,7 @@ function renderProfilingDashboard(data) {
 
             return `
                 <tr class="hover:bg-white/[0.02] transition-colors">
-                    <td class="py-4 px-6 font-semibold text-white whitespace-nowrap">${col}</td>
+                    <td class="py-4 px-6 font-semibold text-white whitespace-nowrap">${escapeHtml(col)}</td>
                     <td class="py-4 px-4 whitespace-nowrap">
                         <span class="inline-flex px-2 py-0.5 text-[10px] font-semibold border rounded-full uppercase ${typeBadgeColor}">${type}</span>
                     </td>
@@ -246,7 +246,7 @@ function renderProfilingDashboard(data) {
                     barsHtml += `
                         <div class="space-y-1">
                             <div class="flex items-center justify-between text-xs">
-                                <span class="text-gray-300 truncate max-w-[150px] font-mono text-[11px]">${k}</span>
+                                <span class="text-gray-300 truncate max-w-[150px] font-mono text-[11px]">${escapeHtml(k)}</span>
                                 <span class="text-gray-500">${formatNumber(countVal)} <span class="text-[10px] ml-0.5">(${pct}%)</span></span>
                             </div>
                             <div class="h-1.5 rounded-full bg-white/[0.04] overflow-hidden">
@@ -259,7 +259,7 @@ function renderProfilingDashboard(data) {
                 html += `
                     <div class="glass border border-white/[0.05] rounded-xl p-4 space-y-3">
                         <div class="flex items-center justify-between">
-                            <h5 class="text-xs font-bold text-white truncate">${col}</h5>
+                            <h5 class="text-xs font-bold text-white truncate">${escapeHtml(col)}</h5>
                             <span class="text-[10px] font-semibold bg-purple-500/10 text-purple-400 px-2 py-0.5 rounded-full uppercase">${type}</span>
                         </div>
                         <div class="space-y-2">

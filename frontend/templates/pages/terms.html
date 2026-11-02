@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Terms of Service — AI BI Platform{% endblock %}
+{% block meta_description %}Read our Terms of Service to understand the usage guidelines of the AI BI Platform.{% endblock %}
+
+{% block body %}
+<div class="relative min-h-screen py-16 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
+    <!-- Background Elements -->
+    <div class="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+        <div class="absolute -top-40 -right-40 w-[500px] h-[500px] rounded-full bg-primary-500/[0.04] blur-[100px] animate-float"></div>
+        <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAwIDEwIEwgNDAgMTAgTSAxMCAwIEwgMTAgNDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjAyKSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIkMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-40"></div>
+    </div>
+
+    <!-- Header -->
+    <div class="relative z-10 flex items-center justify-between border-b border-white/[0.08] pb-6 mb-8">
+        <a href="{{ url_for('home_page') }}" class="inline-flex items-center gap-2.5 group">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-blue-600 flex items-center justify-center shadow-lg shadow-primary-500/25">
+                <svg class="w-5.5 h-5.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+            </div>
+            <span class="text-lg font-bold text-white">AI BI Platform</span>
+        </a>
+        <a id="auth-action-btn" href="{{ url_for('login_page') }}" class="px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 border border-primary-500/20 text-xs font-semibold text-white rounded-xl shadow-lg shadow-primary-500/10 hover:from-primary-600 hover:to-primary-700 transition-all">Sign In</a>
+    </div>
+
+    <!-- Main Content Container -->
+    <div class="relative z-10 glass rounded-2xl border border-white/[0.08] p-8 md:p-10 shadow-2xl shadow-black/30 space-y-6 text-sm text-gray-300 leading-relaxed">
+        <h1 class="text-3xl font-extrabold text-white tracking-tight mb-2">Terms of Service</h1>
+        <p class="text-xs text-gray-500">Last Updated: July 15, 2026</p>
+        
+        <p>Welcome to the AI-Powered Business Intelligence Platform ("AI BI Platform"). By accessing or using our website, services, and software, you agree to comply with and be bound by these Terms of Service. Please read them carefully.</p>
+
+        <h2 class="text-base font-bold text-white mt-8 mb-3">1. Acceptance of Terms</h2>
+        <p>By registering for an account or uploading data to the AI BI Platform, you agree to these Terms and all applicable laws and regulations. If you do not agree, you must immediately cease using the platform.</p>
+
+        <h2 class="text-base font-bold text-white mt-8 mb-3">2. Description of Service</h2>
+        <p>The AI BI Platform provides automated machine learning pipelines, profiling tools, data quality diagnostics, and natural language analytics workflows. We reserve the right to modify, suspend, or discontinue any feature at any time without notice.</p>
+
+        <h2 class="text-base font-bold text-white mt-8 mb-3">3. User Accounts</h2>
+        <p>You are responsible for safeguarding your login credentials, including passwords and JWT tokens. You agree to notify us immediately of any unauthorized access or security breach of your account.</p>
+
+        <h2 class="text-base font-bold text-white mt-8 mb-3">4. Data Security and Ownership</h2>
+        <p>Any datasets uploaded to the platform remain the intellectual property of the user. We do not claim ownership over user-uploaded content. You warrant that you have all necessary rights, licenses, and permissions to upload and process the data.</p>
+
+        <h2 class="text-base font-bold text-white mt-8 mb-3">5. Prohibited Activities</h2>
+        <p>You agree not to use the platform to process malicious code, engage in DDoS attacks, scrape data, or violate any third-party privacy rights or local regulations.</p>
+
+        <h2 class="text-base font-bold text-white mt-8 mb-3">6. Limitation of Liability</h2>
+        <p>The service is provided "as is" without warranties of any kind. Under no circumstances shall the platform or its developers be liable for direct, indirect, or incidental damages, including data loss, loss of profits, or system downtime.</p>
+
+        <div class="border-t border-white/[0.08] pt-6 mt-8 flex justify-between items-center text-xs text-gray-500">
+            <span>&copy; 2026 AI BI Platform. All rights reserved.</span>
+            <a href="{{ url_for('privacy_page') }}" class="text-primary-400 hover:underline">Privacy Policy</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const authBtn = document.getElementById('auth-action-btn');
+        if (authBtn) {
+            const token = sessionStorage.getItem('access_token');
+            if (token) {
+                authBtn.textContent = 'Back to Dashboard';
+                authBtn.href = '/dashboard';
+                authBtn.className = "px-4 py-2 bg-white/[0.05] border border-white/[0.08] text-xs font-semibold text-gray-300 rounded-xl hover:bg-white/[0.1] hover:text-white transition-all";
+            } else {
+                authBtn.textContent = 'Sign Up';
+                authBtn.href = '/register';
+            }
+        }
+    });
+</script>
+{% endblock %}

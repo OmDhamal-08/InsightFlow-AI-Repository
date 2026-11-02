@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Close sidebar on mobile
             const sidebar = document.getElementById('sidebar');
             if (sidebar && !sidebar.classList.contains('-translate-x-full')) {
-                if (window.innerWidth < 1024) {
+                if (window.innerWidth < 768) {
                     toggleSidebar();
                 }
             }
@@ -82,41 +82,31 @@ document.addEventListener('DOMContentLoaded', async () => {
  */
 async function checkAndHydrateAuth() {
     const path = window.location.pathname;
-    const isPublicPage = path === '/' || path === '/login' || path === '/register';
+    const publicPages = ['/', '/login', '/register', '/forgot-password', '/reset-password', '/terms', '/privacy'];
+    const isPublicPage = publicPages.includes(path);
 
-    // Retrieve cached token
-    let token = sessionStorage.getItem('access_token');
-    if (token) {
-        setAccessToken(token);
-    }
+    // Use the cached access token if there is one; otherwise try the refresh cookie.
+    const cached = sessionStorage.getItem('access_token');
+    if (cached) setAccessToken(cached);
+    const hasToken = !!cached || await refreshToken();
 
-    // If no token, try to refresh it using HTTPOnly cookie
-    if (!token) {
-        const refreshed = await refreshToken();
-        if (refreshed) {
-            token = getAccessToken();
-            sessionStorage.setItem('access_token', token);
-        }
-    }
+    // A token in storage can be expired or revoked, so confirm it with the server.
+    // (apiGet transparently refreshes once on 401.)
+    const user = hasToken ? await hydrateUserProfile() : null;
 
-    if (token) {
-        // User is logged in
+    if (user) {
+        sessionStorage.setItem('access_token', getAccessToken());
         if (path === '/login' || path === '/register') {
-            // Redirect to dashboard if they try to access login/register while logged in
             window.location.href = '/dashboard';
-            return;
         }
+        return;
+    }
 
-        // Hydrate profile data on authenticated pages
-        if (!isPublicPage) {
-            await hydrateUserProfile();
-        }
-    } else {
-        // User is not logged in
-        if (!isPublicPage) {
-            // Redirect to login if accessing a protected page
-            window.location.href = '/login';
-        }
+    // Not logged in (or session ended): clear stale state and protect private pages.
+    clearAccessToken();
+    sessionStorage.removeItem('access_token');
+    if (!isPublicPage) {
+        window.location.href = '/login';
     }
 }
 
@@ -150,10 +140,18 @@ async function hydrateUserProfile() {
             if (sidebarAvatar) sidebarAvatar.textContent = firstLetter;
             if (sidebarUsername) sidebarUsername.textContent = user.username;
             if (sidebarEmail) sidebarEmail.textContent = user.email;
+
+            // Hydrate Dashboard Welcome Header
+            const dashboardWelcomeUsername = document.getElementById('dashboard-welcome-username');
+            if (dashboardWelcomeUsername) {
+                dashboardWelcomeUsername.textContent = user.profile?.full_name || user.username;
+            }
+            return user;
         }
     } catch (err) {
         console.error('Failed to hydrate user profile:', err);
     }
+    return null;
 }
 
 /**
@@ -196,6 +194,74 @@ function toggleSidebar() {
         if (overlay) overlay.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
     }
+}
+
+/* ================================================
+   Desktop Sidebar Collapse (shrink/expand)
+   ================================================ */
+function toggleSidebarCollapse() {
+    const sidebar = document.getElementById('sidebar');
+    const mainContent = document.getElementById('main-content');
+    const collapseBtn = document.getElementById('sidebar-collapse-btn');
+    const collapseIcon = document.getElementById('collapse-icon');
+    if (!sidebar) return;
+
+    const isCollapsed = sidebar.classList.toggle('sidebar-collapsed');
+
+    // Set inline styles to override any Tailwind or class conflicts
+    sidebar.style.width = isCollapsed ? '70px' : '256px';
+
+    if (mainContent) {
+        mainContent.classList.toggle('sidebar-collapsed-main', isCollapsed);
+        mainContent.style.marginLeft = isCollapsed ? '70px' : '256px';
+    }
+    if (collapseBtn) {
+        collapseBtn.classList.toggle('sidebar-collapsed-btn', isCollapsed);
+        collapseBtn.style.left = isCollapsed ? '54px' : '248px';
+    }
+    if (collapseIcon) {
+        collapseIcon.style.transform = isCollapsed ? 'rotate(180deg)' : 'rotate(0deg)';
+    }
+
+    localStorage.setItem('sidebar_collapsed', isCollapsed ? 'true' : 'false');
+}
+
+/* Restore collapsed state on load */
+function restoreSidebarState() {
+    const sidebar = document.getElementById('sidebar');
+    const mainContent = document.getElementById('main-content');
+    const collapseBtn = document.getElementById('sidebar-collapse-btn');
+    const collapseIcon = document.getElementById('collapse-icon');
+    
+    if (!sidebar) return;
+    
+    const shouldCollapse = localStorage.getItem('sidebar_collapsed') === 'true';
+    if (shouldCollapse) {
+        sidebar.classList.add('sidebar-collapsed');
+        sidebar.style.width = '70px';
+        if (mainContent) {
+            mainContent.classList.add('sidebar-collapsed-main');
+            mainContent.style.marginLeft = '70px';
+        }
+        if (collapseBtn) {
+            collapseBtn.classList.add('sidebar-collapsed-btn');
+            collapseBtn.style.left = '54px';
+        }
+        if (collapseIcon) collapseIcon.style.transform = 'rotate(180deg)';
+    } else {
+        // Ensure expanded state inline styles are set on desktop
+        if (window.innerWidth >= 768) {
+            sidebar.style.width = '256px';
+            if (mainContent) mainContent.style.marginLeft = '256px';
+            if (collapseBtn) collapseBtn.style.left = '248px';
+        }
+    }
+}
+// Call immediately if DOM is ready, or wait
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', restoreSidebarState);
+} else {
+    restoreSidebarState();
 }
 
 /* ================================================
@@ -368,13 +434,13 @@ async function handleNavSearch(rawQuery) {
         if (matches.length === 0) {
             dropdown.innerHTML = `
                 <div class="px-4 py-4 text-xs text-gray-500 text-center">
-                    🔍 No matching datasets for "<span class="text-gray-300">${rawQuery.trim()}</span>"
+                    🔍 No matching datasets for "<span class="text-gray-300">${escapeHtml(rawQuery.trim())}</span>"
                 </div>`;
         } else {
             dropdown.innerHTML = matches.slice(0, 8).map(ds => `
                 <div class="px-4 py-2.5 hover:bg-white/[0.04] transition-colors flex items-center justify-between gap-3">
                     <div class="min-w-0">
-                        <p class="text-xs font-semibold text-gray-200 truncate">${ds.name}</p>
+                        <p class="text-xs font-semibold text-gray-200 truncate">${escapeHtml(ds.name)}</p>
                         <p class="text-[10px] text-gray-500 truncate">${ds.row_count || 0} rows &bull; ${ds.column_count || 0} cols</p>
                     </div>
                     <div class="flex gap-1.5 flex-shrink-0">
@@ -463,10 +529,10 @@ function renderNavNotifications() {
     list.innerHTML = _navNotifications.map(n => `
         <div class="px-4 py-3 hover:bg-white/[0.02] transition-colors ${!n.is_read ? 'bg-primary-500/[0.03]' : ''}">
             <div class="flex items-start justify-between gap-2">
-                <p class="text-xs font-semibold text-gray-200">${n.title}</p>
+                <p class="text-xs font-semibold text-gray-200">${escapeHtml(n.title)}</p>
                 <span class="text-[9px] text-gray-600 whitespace-nowrap">${formatDate(n.created_at)}</span>
             </div>
-            <p class="mt-1 text-[11px] text-gray-400 leading-relaxed">${n.message}</p>
+            <p class="mt-1 text-[11px] text-gray-400 leading-relaxed">${escapeHtml(n.message)}</p>
         </div>
     `).join('');
 }

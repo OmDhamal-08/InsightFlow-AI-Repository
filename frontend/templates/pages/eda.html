@@ -63,7 +63,7 @@
         </div>
 
         <!-- Summary Charts Grid -->
-        <div id="summary-charts-grid" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div id="summary-charts-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Dynamically hydrated by JS -->
         </div>
 
@@ -143,10 +143,74 @@
             </div>
 
         </div>
+
+        <!-- ====== Target-Aware Bivariate Analysis ====== -->
+        <div class="border-b border-white/[0.06] pb-2 pt-6 flex items-center justify-between">
+            <h3 class="text-base font-bold text-white">🎯 Target-Aware Bivariate Analysis</h3>
+            <span class="text-xs text-gray-500">Statistical Association Testing</span>
+        </div>
+
+        <div class="glass rounded-2xl border border-white/[0.06] p-5 space-y-5">
+            <p class="text-xs text-gray-400">Select a <strong class="text-gray-200">target column</strong> to compute statistical associations (Pearson, ANOVA, Chi-Square, Cramér's V) and generate bivariate plots for every feature.</p>
+            <div class="flex flex-col sm:flex-row gap-4 items-end">
+                <div class="flex-1 space-y-1.5">
+                    <label for="bivariate-target-col" class="text-xs text-gray-400 font-medium">Target Column</label>
+                    <select id="bivariate-target-col" class="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 py-2.5 text-xs text-gray-200 focus:outline-none focus:border-primary-500 transition-colors">
+                        <!-- JS populated -->
+                    </select>
+                </div>
+                <button id="run-bivariate-btn" onclick="runBivariateAnalysis()" class="px-6 py-2.5 text-xs font-semibold text-white bg-gradient-to-r from-emerald-500 to-teal-600 rounded-xl hover:from-emerald-600 hover:to-teal-700 shadow-lg shadow-emerald-500/20 transition-all flex items-center gap-2 whitespace-nowrap">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                    Analyze Associations
+                </button>
+            </div>
+        </div>
+
+        <!-- Bivariate Loading -->
+        <div id="bivariate-loading" class="hidden glass rounded-2xl border border-white/[0.06] p-8 text-center">
+            <div class="w-10 h-10 mx-auto rounded-full border-4 border-emerald-500/20 border-t-emerald-500 animate-spin mb-4"></div>
+            <p class="text-sm text-gray-400">Computing statistical association tests...</p>
+        </div>
+
+        <!-- Bivariate Results -->
+        <div id="bivariate-results" class="hidden space-y-6 animate-fade-in">
+
+            <!-- Association Strength Ranking Table -->
+            <div class="glass rounded-2xl border border-white/[0.06] overflow-hidden">
+                <div class="flex items-center justify-between px-6 py-4 border-b border-white/[0.06]">
+                    <h4 class="text-sm font-semibold text-gray-300">Feature Association Ranking</h4>
+                    <span id="bivariate-target-badge" class="text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 px-2.5 py-0.5 rounded-full border border-emerald-500/20">Target: —</span>
+                </div>
+                <div class="overflow-x-auto max-h-[400px] overflow-y-auto scrollbar-thin">
+                    <table class="w-full text-xs min-w-[700px]">
+                        <thead class="sticky top-0 z-10">
+                            <tr class="bg-white/[0.03] border-b border-white/[0.06]">
+                                <th class="text-left px-4 py-2.5 text-gray-400 font-semibold">#</th>
+                                <th class="text-left px-4 py-2.5 text-gray-400 font-semibold">Feature</th>
+                                <th class="text-left px-4 py-2.5 text-gray-400 font-semibold">Type</th>
+                                <th class="text-left px-4 py-2.5 text-gray-400 font-semibold">Test</th>
+                                <th class="text-right px-4 py-2.5 text-gray-400 font-semibold">Effect Size</th>
+                                <th class="text-right px-4 py-2.5 text-gray-400 font-semibold">p-value</th>
+                                <th class="text-center px-4 py-2.5 text-gray-400 font-semibold">Strength</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bivariate-table-body">
+                            <!-- JS hydrated -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Bivariate Charts Grid -->
+            <div id="bivariate-charts-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- JS hydrated Plotly charts -->
+            </div>
+        </div>
+
     </div>
 </div>
 {% endblock %}
 
 {% block page_scripts %}
-<script src="{{ url_for('static', path='js/eda.js') }}"></script>
+<script src="{{ url_for('static', path='js/eda.js') }}?v=1.0.5"></script>
 {% endblock %}

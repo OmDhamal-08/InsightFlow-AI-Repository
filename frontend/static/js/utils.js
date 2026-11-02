@@ -4,6 +4,27 @@
  */
 
 /* ================================================
+   HTML Escaping
+   ================================================ */
+
+/**
+ * Escape a value for safe insertion into HTML text or attribute context.
+ * Use this for anything that came from a user or from an uploaded file:
+ * dataset names, column headers, CSV cell values, server error messages.
+ * @param {*} value - Any value; null/undefined become an empty string
+ * @returns {string} HTML-escaped string
+ */
+function escapeHtml(value) {
+    if (value === null || value === undefined) return '';
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+/* ================================================
    Date Formatting
    ================================================ */
 
@@ -147,7 +168,7 @@ function showToast(message, type = 'info', duration = 4000) {
         <span class="flex-shrink-0 w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold ${config.text}" style="background: currentColor; -webkit-background-clip: unset;">
             <span style="color: white; -webkit-text-fill-color: white;">${config.icon}</span>
         </span>
-        <p class="text-sm ${config.text} flex-1">${message}</p>
+        <p class="text-sm ${config.text} flex-1">${escapeHtml(message)}</p>
         <button onclick="this.parentElement.remove()" class="flex-shrink-0 p-0.5 rounded hover:bg-white/10 transition-colors">
             <svg class="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>

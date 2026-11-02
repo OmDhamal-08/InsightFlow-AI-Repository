@@ -5,22 +5,32 @@
 {% block body %}
 <div class="flex min-h-screen" id="app-layout">
     <!-- Mobile Sidebar Overlay -->
-    <div id="sidebar-overlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden lg:hidden transition-opacity duration-300" onclick="toggleSidebar()"></div>
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden md:hidden transition-opacity duration-300" onclick="toggleSidebar()"></div>
 
     <!-- Sidebar -->
-    <aside id="sidebar" class="fixed left-0 top-0 z-50 h-full w-64 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out">
+    <aside id="sidebar" class="fixed left-0 top-0 z-50 h-full transform -translate-x-full md:translate-x-0 transition-all duration-300 ease-in-out" style="width: 256px;">
         {% include 'components/sidebar.html' %}
     </aside>
 
+    <!-- Desktop Sidebar Collapse Toggle Button -->
+    <button id="sidebar-collapse-btn" onclick="toggleSidebarCollapse()"
+            class="hidden md:flex fixed top-4 z-[51] w-7 h-7 items-center justify-center rounded-full bg-surface-800 border border-white/[0.08] text-gray-400 hover:text-white hover:bg-white/[0.1] hover:border-primary-500/30 shadow-lg transition-all duration-300"
+            style="left: 248px;" 
+            title="Collapse sidebar">
+        <svg id="collapse-icon" class="w-3.5 h-3.5 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+    </button>
+
     <!-- Main Content Wrapper -->
-    <div class="flex-1 flex flex-col min-h-screen lg:ml-64 transition-all duration-300">
+    <div id="main-content" class="flex-1 flex flex-col min-h-screen transition-all duration-300 min-w-0" style="margin-left: 0;">
         <!-- Top Navbar -->
         <header class="sticky top-0 z-30">
             {% include 'components/navbar.html' %}
         </header>
 
         <!-- Page Content -->
-        <main class="flex-1 p-4 md:p-6 lg:p-8 animate-fade-in">
+        <main class="flex-1 p-4 md:p-6 lg:p-8 animate-fade-in min-w-0">
             <!-- Flash Messages / Alerts -->
             {% if messages %}
                 {% for message in messages %}
@@ -46,3 +56,4 @@
     {{ super() }}
     {% block page_scripts %}{% endblock %}
 {% endblock %}
+

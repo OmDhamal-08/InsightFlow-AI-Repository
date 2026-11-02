@@ -1,5 +1,8 @@
 # AI-Powered Business Intelligence Platform — Project Explanation
 
+> **Scope note (Nov 2026):** This document is the original Phase 0 vision for an 18-phase product. The implemented scope is **Phases 0–11** (through AutoML and Model Evaluation), built on a lightweight scikit-learn stack. Sections about SHAP, forecasting, anomaly detection, the AI assistant, reports and LLM libraries describe the future roadmap, not current features. See the [README](../README.md) and [INTERVIEW_GUIDE.md](INTERVIEW_GUIDE.md) for what exists today.
+
+
 > **Version:** 1.0 · **Last Updated:** 2026-07-12 · **Current Phase:** Phase 0 — Planning & System Design
 
 ---

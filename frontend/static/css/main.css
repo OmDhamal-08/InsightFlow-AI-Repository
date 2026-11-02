@@ -122,27 +122,28 @@ body {
 
 /* ---- Scrollbar Styling ---- */
 ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-    background: transparent;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: var(--radius-full);
 }
 
 ::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.2);
     border-radius: var(--radius-full);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: var(--color-accent);
 }
 
 /* Firefox scrollbar */
 * {
     scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
 }
 
 /* ---- Glassmorphism ---- */
@@ -651,4 +652,96 @@ html:not(.light) #sidebar-theme-moon-icon {
 html:not(.light) #theme-sun-icon,
 html:not(.light) #sidebar-theme-sun-icon {
     display: inline-block !important;
+}
+
+/* ---- Scrollbar Thin Utility ---- */
+.scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+}
+.scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* ---- Sidebar Collapsed State ---- */
+/* Hide text labels, section titles, badges, and user info in collapsed mode */
+.sidebar-collapsed .sidebar-label,
+.sidebar-collapsed .sidebar-section-title,
+.sidebar-collapsed .sidebar-logo-text,
+.sidebar-collapsed .sidebar-user-info,
+.sidebar-collapsed .sidebar-badge {
+    display: none !important;
+}
+
+/* Center icons in collapsed sidebar links */
+.sidebar-collapsed .sidebar-link {
+    justify-content: center;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+/* Tighten horizontal padding in collapsed nav and sections */
+.sidebar-collapsed nav,
+.sidebar-collapsed .px-3 {
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+}
+.sidebar-collapsed .px-5 {
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+}
+
+/* Hide overflow so content doesn't bleed out of the narrow sidebar */
+.sidebar-collapsed {
+    overflow: hidden !important;
+}
+.sidebar-collapsed .glass-sidebar {
+    overflow: hidden !important;
+}
+
+/* Center user avatar in collapsed state */
+.sidebar-collapsed .sidebar-link span.flex-shrink-0,
+.sidebar-collapsed div.flex.items-center.gap-3 {
+    justify-content: center;
+}
+
+/* ---- Desktop Sidebar Layout ---- */
+@media (min-width: 768px) {
+    /* Default expanded state */
+    #sidebar {
+        width: 256px;
+    }
+    #main-content {
+        margin-left: 256px;
+    }
+    #sidebar-collapse-btn {
+        left: 248px;
+    }
+
+    /* Sidebar shrink: override default width */
+    #sidebar.sidebar-collapsed {
+        width: 70px !important;
+        min-width: 70px !important;
+    }
+
+    /* Main content shift: override default margin */
+    #main-content.sidebar-collapsed-main {
+        margin-left: 70px !important;
+    }
+
+    /* Collapse button repositioning */
+    #sidebar-collapse-btn.sidebar-collapsed-btn {
+        left: 54px !important;
+    }
 }

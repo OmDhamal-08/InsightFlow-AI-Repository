@@ -55,7 +55,7 @@ async function loadDatasetMetadata(datasetId) {
             
             if (selectX) {
                 selectX.innerHTML = datasetColumns.map(col => `
-                    <option value="${col}">${col}</option>
+                    <option value="${escapeHtml(col)}">${escapeHtml(col)}</option>
                 `).join('');
                 selectX.addEventListener('change', updateChartTypeOptions);
             }
@@ -64,8 +64,17 @@ async function loadDatasetMetadata(datasetId) {
                 // Populate select Y only with numeric columns (useful for bivariate scatter)
                 const numericCols = datasetColumns.filter(col => (columnTypesMap[col] || 'numeric') === 'numeric');
                 selectY.innerHTML = numericCols.map(col => `
-                    <option value="${col}">${col}</option>
+                    <option value="${escapeHtml(col)}">${escapeHtml(col)}</option>
                 `).join('');
+            }
+
+            // Populate bivariate target selector with ALL columns
+            const bivariateTargetSelect = document.getElementById('bivariate-target-col');
+            if (bivariateTargetSelect) {
+                bivariateTargetSelect.innerHTML = datasetColumns.map(col => {
+                    const type = columnTypesMap[col] || 'unknown';
+                    return `<option value="${escapeHtml(col)}">${escapeHtml(col)} (${type})</option>`;
+                }).join('');
             }
 
             // Initial call to set options on page load
@@ -119,6 +128,11 @@ async function loadSummaryEda(datasetId) {
                 notGenPanel.classList.add('hidden');
                 dashboardPanel.classList.remove('hidden');
                 renderSummaryChartsGrid();
+
+                // Automatically compute bivariate analysis for default target column
+                setTimeout(() => {
+                    runBivariateAnalysis();
+                }, 300);
             } else {
                 notGenPanel.classList.remove('hidden');
                 dashboardPanel.classList.add('hidden');
@@ -192,7 +206,7 @@ function renderSummaryChartsGrid() {
         const cardHtml = `
             <div class="glass rounded-2xl border border-white/[0.06] p-5 flex flex-col justify-between min-h-[360px]">
                 <div class="mb-3 flex-shrink-0">
-                    <h4 class="text-sm font-semibold text-gray-300">${chart.chart_config.title}</h4>
+                    <h4 class="text-sm font-semibold text-gray-300">${escapeHtml(chart.chart_config.title)}</h4>
                 </div>
 
                 <!-- Display area -->
@@ -206,7 +220,7 @@ function renderSummaryChartsGrid() {
                 <!-- AI Insight -->
                 <div class="p-3 rounded-xl bg-white/[0.02] border border-white/[0.05] flex gap-2.5 text-xs text-gray-400 leading-normal flex-shrink-0">
                     <span class="text-primary-400 font-bold">AI</span>
-                    <p>${chart.insight || 'No automated insights generated.'}</p>
+                    <p>${escapeHtml(chart.insight) || 'No automated insights generated.'}</p>
                 </div>
             </div>
         `;
@@ -233,19 +247,19 @@ function renderCorrelationGrid(containerId, cols, matrix) {
             <thead>
                 <tr>
                     <th class="py-1.5 px-1 bg-white/[0.02] text-gray-500 font-semibold border border-white/[0.06]"></th>
-                    ${cols.map(c => `<th class="py-1.5 px-1 bg-white/[0.02] text-gray-400 font-semibold border border-white/[0.06] truncate max-w-[60px]" title="${c}">${c}</th>`).join('')}
+                    ${cols.map(c => `<th class="py-1.5 px-1 bg-white/[0.02] text-gray-400 font-semibold border border-white/[0.06] truncate max-w-[60px]" title="${escapeHtml(c)}">${escapeHtml(c)}</th>`).join('')}
                 </tr>
             </thead>
             <tbody class="divide-y divide-white/[0.04]">
     `;
 
     cols.forEach((yCol, yIdx) => {
-        html += `<tr><td class="py-1 px-1.5 bg-white/[0.02] text-gray-400 font-semibold border border-white/[0.06] text-left truncate max-w-[70px]" title="${yCol}">${yCol}</td>`;
+        html += `<tr><td class="py-1 px-1.5 bg-white/[0.02] text-gray-400 font-semibold border border-white/[0.06] text-left truncate max-w-[70px]" title="${escapeHtml(yCol)}">${escapeHtml(yCol)}</td>`;
         cols.forEach((xCol, xIdx) => {
             const val = matrix[yIdx][xIdx];
             const colorClass = val === null ? 'bg-transparent text-gray-600' : getCorrBg(val);
             const valText = val !== null ? val.toFixed(2) : 'null';
-            html += `<td class="py-1 px-1 border border-white/[0.06] ${colorClass}" title="${yCol} vs ${xCol}: ${val}">${valText}</td>`;
+            html += `<td class="py-1 px-1 border border-white/[0.06] ${colorClass}" title="${escapeHtml(yCol)} vs ${escapeHtml(xCol)}: ${escapeHtml(val)}">${escapeHtml(valText)}</td>`;
         });
         html += `</tr>`;
     });
@@ -706,3 +720,253 @@ function getPlotlyLayout(title, xTitle, yTitle) {
         }
     };
 }
+
+/* ================================================
+   Target-Aware Bivariate Analysis
+   ================================================ */
+
+/**
+ * Fetch bivariate statistical associations from the backend and render results.
+ */
+async function runBivariateAnalysis() {
+    const targetCol = document.getElementById('bivariate-target-col')?.value;
+    if (!targetCol || !currentDatasetId) return;
+
+    const loadingEl = document.getElementById('bivariate-loading');
+    const resultsEl = document.getElementById('bivariate-results');
+    const btn = document.getElementById('run-bivariate-btn');
+
+    // Show loading
+    if (loadingEl) loadingEl.classList.remove('hidden');
+    if (resultsEl) resultsEl.classList.add('hidden');
+    if (btn) btn.disabled = true;
+
+    try {
+        const resp = await apiGet(`/datasets/${currentDatasetId}/eda/bivariate?target_column=${encodeURIComponent(targetCol)}`);
+        if (resp.ok) {
+            const data = await resp.json();
+            renderBivariateTable(data);
+            renderBivariateCharts(data);
+
+            if (resultsEl) resultsEl.classList.remove('hidden');
+        } else {
+            const errData = await resp.json().catch(() => ({}));
+            showToast(errData.detail || 'Failed to compute bivariate analysis', 'error');
+        }
+    } catch (err) {
+        console.error('Bivariate analysis error:', err);
+        showToast('Failed to compute bivariate analysis', 'error');
+    } finally {
+        if (loadingEl) loadingEl.classList.add('hidden');
+        if (btn) btn.disabled = false;
+    }
+}
+
+/**
+ * Render the Feature Association Ranking table.
+ */
+function renderBivariateTable(data) {
+    const tbody = document.getElementById('bivariate-table-body');
+    const badge = document.getElementById('bivariate-target-badge');
+
+    if (badge) badge.textContent = `Target: ${data.target_column} (${data.target_type})`;
+
+    if (!tbody) return;
+
+    // Sort by absolute effect size descending
+    const sorted = [...(data.associations || [])].sort((a, b) => {
+        return Math.abs(b.effect_size || 0) - Math.abs(a.effect_size || 0);
+    });
+
+    const strengthBadge = (strength) => {
+        const colors = {
+            strong: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+            moderate: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+            weak: 'bg-orange-500/10 text-orange-400 border-orange-500/20',
+            none: 'bg-white/[0.04] text-gray-500 border-white/[0.06]',
+        };
+        return `<span class="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${colors[strength] || colors.none}">${strength}</span>`;
+    };
+
+    const typeBadge = (type) => {
+        const colors = {
+            numeric: 'bg-blue-500/10 text-blue-400',
+            categorical: 'bg-purple-500/10 text-purple-400',
+            boolean: 'bg-emerald-500/10 text-emerald-400',
+        };
+        return `<span class="text-[9px] font-medium px-1.5 py-0.5 rounded ${colors[type] || 'bg-white/5 text-gray-400'}">${type}</span>`;
+    };
+
+    tbody.innerHTML = sorted.map((a, idx) => `
+        <tr class="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors">
+            <td class="px-4 py-2.5 text-gray-500 font-mono">${idx + 1}</td>
+            <td class="px-4 py-2.5 text-gray-200 font-medium">${escapeHtml(a.column)}</td>
+            <td class="px-4 py-2.5">${typeBadge(a.column_type)}</td>
+            <td class="px-4 py-2.5 text-gray-400">${escapeHtml(a.test_name)}</td>
+            <td class="px-4 py-2.5 text-right font-mono text-gray-200">${a.effect_size != null ? a.effect_size.toFixed(4) : '—'}</td>
+            <td class="px-4 py-2.5 text-right font-mono text-gray-400">${a.p_value != null ? (a.p_value < 0.001 ? '< 0.001' : a.p_value.toFixed(4)) : '—'}</td>
+            <td class="px-4 py-2.5 text-center">${strengthBadge(a.strength)}</td>
+        </tr>
+    `).join('');
+}
+
+/**
+ * Render bivariate Plotly charts from the backend chart data.
+ */
+function renderBivariateCharts(data) {
+    const grid = document.getElementById('bivariate-charts-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+
+    const charts = data.bivariate_charts || [];
+    if (charts.length === 0) {
+        grid.innerHTML = '<p class="text-xs text-gray-500 col-span-2 text-center py-8">No bivariate charts generated for this target.</p>';
+        return;
+    }
+
+    const plotlyColors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316'];
+
+    charts.forEach((chart, idx) => {
+        const cardId = `bivariate-chart-${idx}`;
+        const card = document.createElement('div');
+        card.className = 'glass rounded-2xl border border-white/[0.06] p-5';
+        card.innerHTML = `
+            <div class="flex items-center justify-between mb-3">
+                <h4 class="text-xs font-semibold text-gray-300">${escapeHtml(chart.chart_config?.title) || 'Bivariate Plot'}</h4>
+                <span class="text-[9px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/20">${(chart.chart_type || '').replace('_', ' ')}</span>
+            </div>
+            <div id="${cardId}" class="min-h-[260px]"></div>
+            ${chart.insight ? `
+            <div class="mt-3 p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/10 flex gap-2 text-xs">
+                <div class="w-4 h-4 rounded bg-emerald-500/10 flex items-center justify-center text-emerald-400 flex-shrink-0 font-bold text-[8px]">AI</div>
+                <p class="text-gray-400">${escapeHtml(chart.insight)}</p>
+            </div>` : ''}
+        `;
+        grid.appendChild(card);
+
+        // Render Plotly chart
+        const plotDiv = card.querySelector(`#${cardId}`);
+        const layout = {
+            ...getPlotlyLayout('', chart.chart_config?.x_label || '', chart.chart_config?.y_label || ''),
+            showlegend: chart.chart_type === 'grouped_box' || chart.chart_type === 'grouped_bar',
+            legend: { font: { color: '#94a3b8', size: 8 }, bgcolor: 'transparent' }
+        };
+        const config = { responsive: true, displayModeBar: false };
+
+        if (chart.chart_type === 'scatter_regression') {
+            const cd = chart.chart_data || {};
+            let xVals = [], yVals = [];
+            
+            if (Array.isArray(cd.points)) {
+                xVals = cd.points.map(p => p.x);
+                yVals = cd.points.map(p => p.y);
+            } else {
+                xVals = cd.x || [];
+                yVals = cd.y || [];
+            }
+
+            const traces = [
+                {
+                    x: xVals, y: yVals,
+                    mode: 'markers', type: 'scatter',
+                    marker: { color: plotlyColors[idx % plotlyColors.length], size: 5, opacity: 0.6 },
+                    name: 'Data Points'
+                }
+            ];
+
+            if (cd.regression && xVals.length > 0) {
+                const reg = cd.regression;
+                const minX = Math.min(...xVals);
+                const maxX = Math.max(...xVals);
+                traces.push({
+                    x: [minX, maxX],
+                    y: [reg.slope * minX + reg.intercept, reg.slope * maxX + reg.intercept],
+                    mode: 'lines', type: 'scatter',
+                    line: { color: '#ef4444', width: 2, dash: 'dash' },
+                    name: `Trendline (R²=${(reg.r_squared || 0).toFixed(3)})`
+                });
+                layout.showlegend = true;
+            } else if (cd.trendline_x && cd.trendline_y) {
+                traces.push({
+                    x: cd.trendline_x, y: cd.trendline_y,
+                    mode: 'lines', type: 'scatter',
+                    line: { color: '#ef4444', width: 2, dash: 'dash' },
+                    name: `Trendline (R²=${(cd.r_squared || 0).toFixed(3)})`
+                });
+                layout.showlegend = true;
+            }
+
+            Plotly.newPlot(plotDiv, traces, layout, config);
+
+        } else if (chart.chart_type === 'grouped_box') {
+            const cd = chart.chart_data || {};
+            const traces = [];
+
+            if (Array.isArray(cd.groups)) {
+                cd.groups.forEach((g, i) => {
+                    traces.push({
+                        y: g.values || [],
+                        type: 'box', name: String(g.label || i),
+                        marker: { color: plotlyColors[i % plotlyColors.length] },
+                        boxpoints: false
+                    });
+                });
+            } else if (typeof cd.groups === 'object' && cd.groups !== null) {
+                Object.entries(cd.groups).forEach(([grpName, grpVal], i) => {
+                    if (Array.isArray(grpVal)) {
+                        traces.push({
+                            y: grpVal,
+                            type: 'box', name: String(grpName),
+                            marker: { color: plotlyColors[i % plotlyColors.length] },
+                            boxpoints: false
+                        });
+                    } else if (typeof grpVal === 'object' && grpVal !== null) {
+                        // Precomputed 5-number summary (min, q1, median, q3, max)
+                        traces.push({
+                            type: 'box',
+                            name: String(grpName),
+                            q1: [grpVal.q1],
+                            median: [grpVal.median],
+                            q3: [grpVal.q3],
+                            lowerfence: [grpVal.min],
+                            upperfence: [grpVal.max],
+                            marker: { color: plotlyColors[i % plotlyColors.length] }
+                        });
+                    }
+                });
+            }
+            Plotly.newPlot(plotDiv, traces, layout, config);
+
+        } else if (chart.chart_type === 'grouped_bar') {
+            const cd = chart.chart_data || {};
+            const traces = [];
+
+            if (Array.isArray(cd.groups)) {
+                cd.groups.forEach((g, i) => {
+                    traces.push({
+                        x: g.categories || [],
+                        y: g.counts || [],
+                        type: 'bar', name: String(g.label || i),
+                        marker: { color: plotlyColors[i % plotlyColors.length], opacity: 0.85 }
+                    });
+                });
+            } else if (typeof cd.groups === 'object' && cd.groups !== null) {
+                Object.entries(cd.groups).forEach(([targetVal, catCounts], i) => {
+                    const xCats = Object.keys(catCounts || {});
+                    const yCounts = Object.values(catCounts || {});
+                    traces.push({
+                        x: xCats,
+                        y: yCounts,
+                        type: 'bar',
+                        name: String(targetVal),
+                        marker: { color: plotlyColors[i % plotlyColors.length], opacity: 0.85 }
+                    });
+                });
+            }
+            layout.barmode = 'group';
+            Plotly.newPlot(plotDiv, traces, layout, config);
+        }
+    });
+}
+
+

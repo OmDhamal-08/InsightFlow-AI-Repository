@@ -1,0 +1,132 @@
+{% extends "base_dashboard.html" %}
+
+{% block page_title %}Model Evaluation{% endblock %}
+{% block meta_description %}Model leaderboard and evaluation: metrics, confusion matrix, ROC and precision-recall curves, residuals and feature importance.{% endblock %}
+
+{% block dashboard_content %}
+<div class="space-y-6" id="experiment-page-root" data-experiment-id="{{ experiment_id }}">
+    <!-- ====== Header ====== -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div class="min-w-0">
+            <div class="flex items-center gap-2 text-xs text-gray-500 mb-1">
+                <a href="{{ url_for('experiments_page') }}" class="hover:text-gray-300 transition-colors">AutoML Experiments</a>
+                <span>&bull;</span>
+                <span class="text-gray-400">Evaluation</span>
+            </div>
+            <h1 class="text-2xl font-bold text-white truncate" id="exp-title">Loading…</h1>
+            <p class="mt-1 text-sm text-gray-400" id="exp-subtitle"></p>
+        </div>
+        <a href="{{ url_for('experiments_page') }}" class="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-gray-300 bg-white/[0.05] border border-white/[0.08] rounded-xl hover:bg-white/[0.1] hover:text-white transition-all">&larr; All experiments</a>
+    </div>
+
+    <div id="exp-error" class="hidden p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-sm text-red-300"></div>
+
+    <!-- ====== Summary Cards ====== -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4" id="exp-cards"></div>
+
+    <div id="exp-dropped" class="hidden p-3 rounded-xl bg-amber-500/[0.06] border border-amber-500/20 text-xs text-amber-200"></div>
+
+    <!-- ====== Leaderboard ====== -->
+    <div class="glass rounded-2xl border border-white/[0.06] p-5">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-semibold text-gray-300">🏆 Model leaderboard</h3>
+            <span class="text-[10px] text-gray-500" id="leaderboard-note"></span>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+                <thead id="leaderboard-thead"></thead>
+                <tbody id="leaderboard-tbody" class="divide-y divide-white/[0.04] text-gray-300"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ====== Evaluation of selected model ====== -->
+    <div id="eval-section" class="hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <h2 class="text-lg font-bold text-white" id="eval-title"></h2>
+            <button id="eval-download" class="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-white bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl hover:from-primary-600 hover:to-primary-700 shadow-lg shadow-primary-500/20">
+                ⬇ Download model (.joblib)
+            </button>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3" id="eval-metrics"></div>
+
+        <!-- Classification charts -->
+        <div id="eval-classification" class="hidden grid grid-cols-1 xl:grid-cols-3 gap-6">
+            <div class="glass rounded-2xl border border-white/[0.06] p-4">
+                <h4 class="text-xs font-semibold text-gray-300 mb-1">Confusion matrix</h4>
+                <p class="text-[10px] text-gray-500 mb-2">Rows = actual class, columns = predicted class.</p>
+                <div id="chart-confusion" class="h-72"></div>
+            </div>
+            <div class="glass rounded-2xl border border-white/[0.06] p-4">
+                <h4 class="text-xs font-semibold text-gray-300 mb-1">ROC curve</h4>
+                <p class="text-[10px] text-gray-500 mb-2">True-positive vs false-positive rate across thresholds.</p>
+                <div id="chart-roc" class="h-72"></div>
+            </div>
+            <div class="glass rounded-2xl border border-white/[0.06] p-4">
+                <h4 class="text-xs font-semibold text-gray-300 mb-1">Precision–recall curve</h4>
+                <p class="text-[10px] text-gray-500 mb-2">More informative than ROC when classes are imbalanced.</p>
+                <div id="chart-pr" class="h-72"></div>
+            </div>
+            <div class="glass rounded-2xl border border-white/[0.06] p-4 xl:col-span-3">
+                <h4 class="text-xs font-semibold text-gray-300 mb-3">Per-class report</h4>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead>
+                            <tr class="border-b border-white/[0.06] text-[10px] uppercase tracking-wider text-gray-500">
+                                <th class="py-2 px-3">Class</th><th class="py-2 px-3">Precision</th><th class="py-2 px-3">Recall</th><th class="py-2 px-3">F1</th><th class="py-2 px-3">Support</th>
+                            </tr>
+                        </thead>
+                        <tbody id="eval-per-class" class="divide-y divide-white/[0.04] text-gray-300"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Regression charts -->
+        <div id="eval-regression" class="hidden grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <div class="glass rounded-2xl border border-white/[0.06] p-4">
+                <h4 class="text-xs font-semibold text-gray-300 mb-1">Predicted vs actual</h4>
+                <p class="text-[10px] text-gray-500 mb-2">Points on the diagonal are perfect predictions.</p>
+                <div id="chart-pred-actual" class="h-80"></div>
+            </div>
+            <div class="glass rounded-2xl border border-white/[0.06] p-4">
+                <h4 class="text-xs font-semibold text-gray-300 mb-1">Residual distribution</h4>
+                <p class="text-[10px] text-gray-500 mb-2">Actual − predicted. A centred, narrow shape is good.</p>
+                <div id="chart-residuals" class="h-80"></div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+            <div class="glass rounded-2xl border border-white/[0.06] p-4 xl:col-span-2">
+                <h4 class="text-xs font-semibold text-gray-300 mb-1">Feature importance (permutation)</h4>
+                <p class="text-[10px] text-gray-500 mb-2">How much the test score drops when a column's values are shuffled.</p>
+                <div id="chart-importance" class="h-80"></div>
+            </div>
+            <div class="glass rounded-2xl border border-white/[0.06] p-4">
+                <h4 class="text-xs font-semibold text-gray-300 mb-3">Hyperparameters</h4>
+                <div id="eval-params" class="space-y-1.5 text-xs"></div>
+            </div>
+        </div>
+
+        <!-- Live prediction -->
+        <div class="glass rounded-2xl border border-white/[0.06] p-5">
+            <div class="flex items-center justify-between mb-1">
+                <h4 class="text-sm font-semibold text-gray-300">🔮 Try a prediction</h4>
+                <span class="text-[10px] text-gray-500">Pre-filled with the first row of the dataset</span>
+            </div>
+            <p class="text-[10px] text-gray-500 mb-4">Calls <code class="font-mono">POST /api/v1/experiments/{id}/models/{model_id}/predict</code> — the same endpoint an external app would use. Leave a field empty to let the model impute it.</p>
+            <div id="predict-fields" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3"></div>
+            <div class="mt-4 flex flex-col sm:flex-row sm:items-center gap-3">
+                <button id="predict-btn" class="inline-flex items-center justify-center gap-2 px-4 py-2 text-xs font-semibold text-white bg-white/[0.08] border border-white/[0.1] rounded-xl hover:bg-white/[0.14]">Predict</button>
+                <div id="predict-output" class="text-sm text-gray-300"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block page_scripts %}
+<script src="{{ url_for('static', path='js/ml_common.js') }}"></script>
+<script src="{{ url_for('static', path='js/experiment_detail.js') }}"></script>
+{% endblock %}

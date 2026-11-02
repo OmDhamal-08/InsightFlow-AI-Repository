@@ -249,7 +249,7 @@ async function loadDatasets() {
                             <div class="w-8 h-8 rounded-lg bg-primary-500/10 flex items-center justify-center flex-shrink-0">
                                 <span class="text-xs font-bold text-primary-400">${(ds.file_type || 'csv').toUpperCase()}</span>
                             </div>
-                            <span class="font-medium text-gray-200 truncate max-w-[200px]">${ds.name}</span>
+                            <span class="font-medium text-gray-200 truncate max-w-[200px]">${escapeHtml(ds.name)}</span>
                         </div>
                     </td>
                     <td class="py-3.5 px-4 text-gray-400">${formatFileSize(ds.file_size)}</td>
@@ -274,6 +274,9 @@ async function loadDatasets() {
                             </a>
                             <a href="/datasets/${ds.id}/features" class="p-1.5 rounded-lg hover:bg-white/10 text-gray-500 hover:text-primary-400 transition-colors" title="Feature Engineering">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.663 17h4.673M12 3v1m6.364 .364l-.707 .707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548 .547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                            </a>
+                            <a href="/experiments?dataset_id=${ds.id}" class="p-1.5 rounded-lg hover:bg-white/10 text-gray-500 hover:text-primary-400 transition-colors" title="Train Models (AutoML)">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23.693L5 14.5m14.8.8l1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0112 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5"/></svg>
                             </a>
                             <button onclick="previewDataset('${ds.id}')" class="p-1.5 rounded-lg hover:bg-white/10 text-gray-500 hover:text-primary-400 transition-colors" title="Preview">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
@@ -339,7 +342,7 @@ async function _fetchAndRenderPreview(datasetId, rows) {
         thead.innerHTML = `
             <tr class="border-b border-white/[0.06]">
                 ${data.columns.map(col => `
-                    <th class="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">${col}</th>
+                    <th class="py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">${escapeHtml(col)}</th>
                 `).join('')}
             </tr>
         `;
@@ -348,7 +351,7 @@ async function _fetchAndRenderPreview(datasetId, rows) {
         tbody.innerHTML = data.rows.map(row => `
             <tr class="border-b border-white/[0.04] hover:bg-white/[0.02]">
                 ${data.columns.map(col => `
-                    <td class="py-2.5 px-4 text-xs text-gray-300 whitespace-nowrap max-w-[200px] truncate">${row[col] != null ? row[col] : '<span class="text-gray-600">null</span>'}</td>
+                    <td class="py-2.5 px-4 text-xs text-gray-300 whitespace-nowrap max-w-[200px] truncate">${row[col] != null ? escapeHtml(row[col]) : '<span class="text-gray-600">null</span>'}</td>
                 `).join('')}
             </tr>
         `).join('');

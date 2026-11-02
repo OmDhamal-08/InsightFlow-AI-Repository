@@ -176,57 +176,48 @@ function togglePasswordVisibility(inputId, button) {
 }
 
 /* ================================================
-   Password Strength Checker (WORKING)
+   Password Strength
    ================================================ */
+
+/**
+ * Strength level using exactly the server's rules (see schemas/auth.py):
+ * 'strong' = 8+ characters with an uppercase letter, a lowercase letter, a digit and a special character.
+ */
+function passwordStrengthLevel(password) {
+    if (!password) return 'weak';
+    const rules = [/[A-Z]/, /[a-z]/, /\d/, /[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]/];
+    const met = rules.filter(r => r.test(password)).length;
+    if (password.length >= 8 && met === 4) return 'strong';
+    if (password.length >= 8 && met >= 2) return 'medium';
+    return 'weak';
+}
+
+/**
+ * Update the register page's strength bars (if present) and return the level
+ * ('weak' | 'medium' | 'strong') so other pages can use it too.
+ */
 function checkPasswordStrength(password) {
-    const bar1 = document.getElementById('strength-bar-1');
-    const bar2 = document.getElementById('strength-bar-2');
-    const bar3 = document.getElementById('strength-bar-3');
-    const bar4 = document.getElementById('strength-bar-4');
+    const level = passwordStrengthLevel(password);
+    const bars = [1, 2, 3, 4].map(i => document.getElementById(`strength-bar-${i}`));
     const text = document.getElementById('strength-text');
-    const bars = [bar1, bar2, bar3, bar4];
+    if (!bars[0] || !text) return level;
 
-    if (!bars[0] || !text) return;
-
-    // Reset all bars
-    bars.forEach(bar => {
-        bar.className = 'h-1 flex-1 rounded-full bg-white/[0.08] transition-colors duration-300';
-    });
-
+    bars.forEach(bar => { bar.className = 'h-1 flex-1 rounded-full bg-white/[0.08] transition-colors duration-300'; });
     if (!password) {
         text.textContent = '';
-        return;
+        return level;
     }
-
-    // Calculate strength score
-    let score = 0;
-    if (password.length >= 8) score++;
-    if (password.length >= 12) score++;
-    if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score++;
-    if (/\d/.test(password)) score++;
-    if (/[^a-zA-Z0-9]/.test(password)) score++;
-
-    // Map score to level
-    let level, color, label;
-    if (score <= 1) {
-        level = 1; color = 'bg-red-500'; label = 'Weak';
-    } else if (score <= 2) {
-        level = 2; color = 'bg-orange-500'; label = 'Fair';
-    } else if (score <= 3) {
-        level = 3; color = 'bg-amber-500'; label = 'Medium';
-    } else {
-        level = 4; color = 'bg-emerald-500'; label = 'Strong';
+    const styles = {
+        weak: { filled: 1, bar: 'bg-red-500', label: 'Weak', color: 'text-red-400' },
+        medium: { filled: 2, bar: 'bg-amber-500', label: 'Medium', color: 'text-amber-400' },
+        strong: { filled: 4, bar: 'bg-emerald-500', label: 'Strong', color: 'text-emerald-400' },
+    }[level];
+    for (let i = 0; i < styles.filled; i++) {
+        bars[i].className = `h-1 flex-1 rounded-full ${styles.bar} transition-colors duration-300`;
     }
-
-    // Fill bars
-    for (let i = 0; i < level; i++) {
-        bars[i].className = `h-1 flex-1 rounded-full ${color} transition-colors duration-300`;
-    }
-
-    // Set label color
-    const labelColors = { 'Weak': 'text-red-400', 'Fair': 'text-orange-400', 'Medium': 'text-amber-400', 'Strong': 'text-emerald-400' };
-    text.textContent = label;
-    text.className = `text-[11px] font-medium ${labelColors[label]}`;
+    text.textContent = styles.label;
+    text.className = `text-[11px] font-medium ${styles.color}`;
+    return level;
 }
 
 /* ================================================

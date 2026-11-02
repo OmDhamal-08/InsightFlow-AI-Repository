@@ -1,0 +1,135 @@
+{% extends "base_dashboard.html" %}
+
+{% block page_title %}AutoML Experiments{% endblock %}
+{% block meta_description %}Train and compare machine learning models automatically: task detection, algorithm recommendations, cross-validation and hyperparameter tuning.{% endblock %}
+
+{% block dashboard_content %}
+<div class="space-y-8" id="experiments-page-root" data-dataset-id="{{ dataset_id }}">
+    <!-- ====== Header ====== -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-white flex items-center gap-2.5">🤖 AutoML Experiments</h1>
+            <p class="mt-1 text-sm text-gray-400">Pick a dataset and a target column — the platform detects the task, recommends algorithms, cross-validates and ranks every model.</p>
+        </div>
+    </div>
+
+    <!-- ====== New Experiment ====== -->
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <div class="glass rounded-2xl border border-white/[0.06] p-5 space-y-4 h-fit">
+            <h3 class="text-sm font-semibold text-gray-300">1 · Data &amp; target</h3>
+
+            <div class="space-y-1.5">
+                <label for="exp-dataset" class="text-xs text-gray-400 font-medium">Dataset</label>
+                <select id="exp-dataset" class="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-primary-500">
+                    <option value="">Loading datasets…</option>
+                </select>
+            </div>
+
+            <div class="space-y-1.5">
+                <label for="exp-target" class="text-xs text-gray-400 font-medium">Target column (what to predict)</label>
+                <select id="exp-target" disabled class="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-primary-500 disabled:opacity-50">
+                    <option value="">Select a dataset first</option>
+                </select>
+            </div>
+
+            <div id="exp-task-info" class="hidden p-3 rounded-xl bg-primary-500/[0.06] border border-primary-500/20 text-xs text-gray-300 space-y-2"></div>
+
+            <div class="space-y-1.5">
+                <label for="exp-name" class="text-xs text-gray-400 font-medium">Experiment name</label>
+                <input id="exp-name" type="text" maxlength="255" placeholder="e.g. Churn prediction v1"
+                       class="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-primary-500">
+            </div>
+        </div>
+
+        <div class="glass rounded-2xl border border-white/[0.06] p-5 space-y-4 h-fit">
+            <h3 class="text-sm font-semibold text-gray-300">2 · Training settings</h3>
+
+            <div class="space-y-1.5">
+                <label for="exp-metric" class="text-xs text-gray-400 font-medium">Optimise for</label>
+                <select id="exp-metric" disabled class="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-primary-500 disabled:opacity-50"></select>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div class="space-y-1.5">
+                    <label for="exp-test-size" class="text-xs text-gray-400 font-medium">Test split</label>
+                    <select id="exp-test-size" class="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-primary-500">
+                        <option value="0.1">10%</option>
+                        <option value="0.2" selected>20%</option>
+                        <option value="0.3">30%</option>
+                    </select>
+                </div>
+                <div class="space-y-1.5">
+                    <label for="exp-cv" class="text-xs text-gray-400 font-medium">CV folds</label>
+                    <select id="exp-cv" class="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-primary-500">
+                        <option value="3">3-fold</option>
+                        <option value="5" selected>5-fold</option>
+                        <option value="10">10-fold</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] space-y-2">
+                <label class="flex items-center gap-2 text-xs text-gray-300 font-medium cursor-pointer">
+                    <input id="exp-tune" type="checkbox" class="rounded border-white/[0.08] bg-transparent text-primary-500 focus:ring-0">
+                    Tune hyperparameters (randomized search)
+                </label>
+                <div class="flex items-center gap-2 text-xs text-gray-400">
+                    <label for="exp-tune-iter">Trials per model</label>
+                    <input id="exp-tune-iter" type="number" min="2" max="30" value="10"
+                           class="w-16 bg-white/[0.03] border border-white/[0.08] rounded-lg px-2 py-1 text-xs text-gray-200 focus:outline-none focus:border-primary-500">
+                </div>
+                <p class="text-[10px] text-gray-500">Tuning tries several settings per algorithm with cross-validation. Slower, usually more accurate.</p>
+            </div>
+
+            <p class="text-[10px] text-gray-500 leading-relaxed">
+                Models are ranked by <span class="text-gray-300">cross-validation</span> score on the training split. The held-out
+                <span class="text-gray-300">test split</span> is only used for the final, unbiased evaluation.
+            </p>
+        </div>
+
+        <div class="glass rounded-2xl border border-white/[0.06] p-5 space-y-4 h-fit">
+            <div class="flex items-center justify-between">
+                <h3 class="text-sm font-semibold text-gray-300">3 · Algorithms</h3>
+                <span id="exp-algo-count" class="text-[10px] text-gray-500"></span>
+            </div>
+            <div id="exp-algorithms" class="space-y-2 text-xs text-gray-500">Choose a target column to see recommendations.</div>
+
+            <button id="exp-train-btn" disabled
+                    class="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl hover:from-primary-600 hover:to-primary-700 shadow-lg shadow-primary-500/20 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+                <svg id="exp-train-spinner" class="hidden w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>
+                <span id="exp-train-text">Train &amp; compare models</span>
+            </button>
+            <p id="exp-train-status" class="hidden text-[11px] text-gray-400 text-center"></p>
+        </div>
+    </div>
+
+    <!-- ====== Experiment History ====== -->
+    <div class="glass rounded-2xl border border-white/[0.06] p-5">
+        <h3 class="text-sm font-semibold text-gray-300 mb-4">Experiments</h3>
+        <div id="experiments-empty" class="hidden py-10 text-center text-sm text-gray-500">No experiments yet — train your first set of models above.</div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+                <thead>
+                    <tr class="border-b border-white/[0.06] text-[10px] font-semibold uppercase tracking-wider text-gray-500">
+                        <th class="py-3 px-3">Experiment</th>
+                        <th class="py-3 px-3">Dataset</th>
+                        <th class="py-3 px-3">Target</th>
+                        <th class="py-3 px-3">Task</th>
+                        <th class="py-3 px-3">Best model</th>
+                        <th class="py-3 px-3">Test score</th>
+                        <th class="py-3 px-3">Status</th>
+                        <th class="py-3 px-3">Created</th>
+                        <th class="py-3 px-3 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="experiments-tbody" class="divide-y divide-white/[0.04] text-gray-300"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block page_scripts %}
+<script src="{{ url_for('static', path='js/ml_common.js') }}"></script>
+<script src="{{ url_for('static', path='js/experiments.js') }}"></script>
+{% endblock %}

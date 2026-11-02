@@ -180,9 +180,9 @@ function renderQualityDashboard(data) {
                         <div class="space-y-1">
                             <div class="flex items-center gap-2">
                                 <span class="inline-flex px-1.5 py-0.5 text-[9px] font-bold border rounded uppercase ${badgeClass}">${rec.severity}</span>
-                                ${rec.column ? `<span class="font-semibold text-white font-mono text-[10px]">${rec.column}</span>` : '<span class="text-gray-500">Dataset</span>'}
+                                ${rec.column ? `<span class="font-semibold text-white font-mono text-[10px]">${escapeHtml(rec.column)}</span>` : '<span class="text-gray-500">Dataset</span>'}
                             </div>
-                            <p class="text-gray-300 leading-relaxed">${rec.description}</p>
+                            <p class="text-gray-300 leading-relaxed">${escapeHtml(rec.description)}</p>
                         </div>
                         <div class="text-right flex-shrink-0">
                             <span class="inline-flex items-center px-2 py-1 rounded bg-primary-500/10 text-primary-400 font-medium text-[10px]">
@@ -214,7 +214,7 @@ function renderQualityDashboard(data) {
 
             return `
                 <tr class="hover:bg-white/[0.02] transition-colors">
-                    <td class="py-3 px-4 font-semibold text-white font-mono text-xs">${col}</td>
+                    <td class="py-3 px-4 font-semibold text-white font-mono text-xs">${escapeHtml(col)}</td>
                     <td class="py-3 px-4 text-gray-400">${formatNumber(stats.null_count)} (${stats.null_percentage.toFixed(1)}%)</td>
                     <td class="py-3 px-4 text-gray-300">${fillPct}% filled</td>
                     <td class="py-3 px-4">
@@ -248,7 +248,7 @@ function renderQualityDashboard(data) {
 
                 return `
                     <tr class="hover:bg-white/[0.02] transition-colors">
-                        <td class="py-3 px-4 font-semibold text-white font-mono text-xs">${col}</td>
+                        <td class="py-3 px-4 font-semibold text-white font-mono text-xs">${escapeHtml(col)}</td>
                         <td class="py-3 px-4 text-gray-400">${formatNumber(stats.outlier_count)}</td>
                         <td class="py-3 px-4 text-gray-400">${pct}%</td>
                         <td class="py-3 px-4 text-gray-500 font-mono text-xs">${boundsText}</td>
@@ -284,7 +284,7 @@ function renderQualityDashboard(data) {
 
                 return `
                     <tr class="hover:bg-white/[0.02] transition-colors">
-                        <td class="py-2.5 px-3 font-medium text-white font-mono">${col}</td>
+                        <td class="py-2.5 px-3 font-medium text-white font-mono">${escapeHtml(col)}</td>
                         <td class="py-2.5 px-3 text-gray-400">${skewValText}</td>
                         <td class="py-2.5 px-3 text-xs">${badge}</td>
                     </tr>
@@ -307,9 +307,9 @@ function renderQualityDashboard(data) {
             multiContainer.innerHTML = pairs.map(pair => `
                 <div class="p-3 rounded-xl bg-white/[0.02] border border-white/[0.04] flex items-center justify-between text-xs">
                     <div class="flex items-center gap-2">
-                        <span class="font-mono text-white font-semibold">${pair.col1}</span>
+                        <span class="font-mono text-white font-semibold">${escapeHtml(pair.col1)}</span>
                         <span class="text-gray-500">&harr;</span>
-                        <span class="font-mono text-white font-semibold">${pair.col2}</span>
+                        <span class="font-mono text-white font-semibold">${escapeHtml(pair.col2)}</span>
                     </div>
                     <span class="font-bold text-red-400 font-mono">r = ${pair.coefficient.toFixed(2)}</span>
                 </div>
@@ -355,14 +355,14 @@ function formatActionName(action) {
         'impute_knn': 'Impute KNN',
         'impute_mode': 'Impute Mode',
         'drop_duplicates': 'Drop Duplicates',
-        'drop_outlier_rows': 'Drop Outlier Rows',
-        'cap_outliers': 'Cap Outliers (Winsorize)',
+        'outliers_drop': 'Drop Outlier Rows',
+        'outliers_cap': 'Cap Outliers (Winsorize)',
         'impute_outliers_median': 'Impute Outliers Median',
         'drop_correlated_column': 'Drop Correlated Feature',
         'apply_pca': 'Dimensionality Reduction (PCA)',
         'apply_log_transform': 'Log Transform',
         'apply_power_transform': 'Power Transform',
-        'apply_smote': 'Apply SMOTE Oversample',
+        'resample_oversample': 'Over-sample Minority Class',
         'use_class_weights': 'Balanced Class Weights'
     };
     return mappings[action] || action.replace(/_/g, ' ');

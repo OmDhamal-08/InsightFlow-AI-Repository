@@ -74,7 +74,7 @@ function populateSelectors() {
     // Populate Target Column Select
     if (targetSelect) {
         targetSelect.innerHTML = datasetColumns.map(c => `
-            <option value="${c}">${c}</option>
+            <option value="${escapeHtml(c)}">${escapeHtml(c)}</option>
         `).join('');
         // Set last column as default target (typical pattern)
         if (datasetColumns.length > 0) {
@@ -87,7 +87,7 @@ function populateSelectors() {
     
     // Populate Interaction Selects
     if (intSelect1 && intSelect2) {
-        const numericOptions = numericCols.map(c => `<option value="${c}">${c}</option>`).join('');
+        const numericOptions = numericCols.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
         intSelect1.innerHTML = numericOptions;
         intSelect2.innerHTML = numericOptions;
         if (numericCols.length > 1) {
@@ -99,8 +99,8 @@ function populateSelectors() {
     if (multiCheckDiv) {
         multiCheckDiv.innerHTML = numericCols.map(c => `
             <div class="flex items-center gap-2">
-                <input type="checkbox" name="multi-col-checkbox" value="${c}" id="chk-${c}" class="rounded border-white/[0.08] bg-transparent text-primary-500 focus:ring-0 focus:ring-offset-0">
-                <label for="chk-${c}" class="text-[11px] text-gray-300 font-mono">${c}</label>
+                <input type="checkbox" name="multi-col-checkbox" value="${escapeHtml(c)}" id="chk-${escapeHtml(c)}" class="rounded border-white/[0.08] bg-transparent text-primary-500 focus:ring-0 focus:ring-offset-0">
+                <label for="chk-${escapeHtml(c)}" class="text-[11px] text-gray-300 font-mono">${escapeHtml(c)}</label>
             </div>
         `).join('');
     }
@@ -134,14 +134,14 @@ function toggleMethodInputs() {
         divSingle.classList.remove('hidden');
         singleLabel.textContent = 'Select Datetime Column';
         singleSelect.innerHTML = datetimeCols.length > 0
-            ? datetimeCols.map(c => `<option value="${c}">${c}</option>`).join('')
-            : datasetColumns.map(c => `<option value="${c}">${c}</option>`).join('');
+            ? datetimeCols.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('')
+            : datasetColumns.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
     } else if (method === 'text') {
         divSingle.classList.remove('hidden');
         singleLabel.textContent = 'Select Text Column';
         singleSelect.innerHTML = textCols.length > 0
-            ? textCols.map(c => `<option value="${c}">${c}</option>`).join('')
-            : datasetColumns.map(c => `<option value="${c}">${c}</option>`).join('');
+            ? textCols.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('')
+            : datasetColumns.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
     } else if (method === 'interaction') {
         divInteraction.classList.remove('hidden');
     } else if (method === 'polynomial') {
@@ -279,13 +279,13 @@ async function loadSavedFeatureSets(datasetId) {
             if (sets.length > 0) {
                 tbody.innerHTML = sets.map(s => {
                     const fileCell = s.output_file_path 
-                        ? `<span class="text-emerald-400 font-mono text-[10px] truncate max-w-[120px] block" title="${s.output_file_path}">Clean CSV applied</span>`
+                        ? `<span class="text-emerald-400 font-mono text-[10px] truncate max-w-[120px] block" title="${escapeHtml(s.output_file_path)}">Clean CSV applied</span>`
                         : `<span class="text-amber-400">Preview only</span>`;
                     
                     return `
                         <tr class="hover:bg-white/[0.01] transition-colors border-b border-white/[0.04]">
-                            <td class="py-3 px-4 font-semibold text-white">${s.name}</td>
-                            <td class="py-3 px-3 uppercase text-primary-400">${s.method}</td>
+                            <td class="py-3 px-4 font-semibold text-white">${escapeHtml(s.name)}</td>
+                            <td class="py-3 px-3 uppercase text-primary-400">${escapeHtml(s.method)}</td>
                             <td class="py-3 px-3">${s.feature_count}</td>
                             <td class="py-3 px-3">${fileCell}</td>
                             <td class="py-3 px-3 text-gray-500">${new Date(s.created_at).toLocaleDateString()}</td>
@@ -318,7 +318,7 @@ function renderPreviewData(columns, rows) {
     thead.innerHTML = `
         <tr class="border-b border-white/[0.06] text-gray-500 bg-white/[0.01]">
             ${columns.map(col => `
-                <th class="py-2 px-3 whitespace-nowrap font-mono text-[10px] uppercase font-bold">${col}</th>
+                <th class="py-2 px-3 whitespace-nowrap font-mono text-[10px] uppercase font-bold">${escapeHtml(col)}</th>
             `).join('')}
         </tr>
     `;
@@ -328,8 +328,9 @@ function renderPreviewData(columns, rows) {
         <tr class="hover:bg-white/[0.01] transition-colors border-b border-white/[0.04]">
             ${columns.map(col => {
                 const val = row[col];
-                const text = val !== null && val !== undefined ? val : '<span class="text-gray-600">null</span>';
-                return `<td class="py-2 px-3 font-mono text-[11px] whitespace-nowrap truncate max-w-[120px]" title="${val}">${text}</td>`;
+                const isNull = val === null || val === undefined;
+                const text = isNull ? '<span class="text-gray-600">null</span>' : escapeHtml(val);
+                return `<td class="py-2 px-3 font-mono text-[11px] whitespace-nowrap truncate max-w-[120px]" title="${escapeHtml(val)}">${text}</td>`;
             }).join('')}
         </tr>
     `).join('');

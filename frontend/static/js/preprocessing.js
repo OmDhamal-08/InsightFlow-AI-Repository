@@ -55,6 +55,27 @@ async function loadDatasetMetadata(datasetId) {
             }
 
             renderColumnsConfigTable();
+
+            // Populate resampling target dropdown
+            const resampleSelect = document.getElementById('resample-target-col');
+            if (resampleSelect) {
+                const catCols = datasetColumns.filter(c => {
+                    const t = columnTypesMap[c] || '';
+                    return t === 'categorical' || t === 'boolean';
+                });
+                resampleSelect.innerHTML = catCols.length
+                    ? catCols.map(col => `<option value="${escapeHtml(col)}">${escapeHtml(col)}</option>`).join('')
+                    : '<option value="" disabled>No categorical columns found</option>';
+            }
+
+            // Strategy change listener
+            const strategySelect = document.getElementById('resample-strategy');
+            const statusIndicator = document.getElementById('resample-status');
+            if (strategySelect && statusIndicator) {
+                strategySelect.addEventListener('change', () => {
+                    statusIndicator.classList.toggle('hidden', !strategySelect.value);
+                });
+            }
         }
     } catch (err) {
         console.error('Failed to load dataset details:', err);
@@ -75,7 +96,7 @@ function renderColumnsConfigTable() {
 
         // Imputation dropdown
         const impSelect = `
-            <select id="imp-${col}" class="w-full bg-white/[0.03] border border-white/[0.08] rounded px-2 py-1 text-xs focus:outline-none focus:border-primary-500">
+            <select id="imp-${escapeHtml(col)}" class="w-full bg-white/[0.03] border border-white/[0.08] rounded px-2 py-1 text-xs focus:outline-none focus:border-primary-500">
                 <option value="none">No Action</option>
                 <option value="impute_cca">CCA (Drop Rows)</option>
                 <option value="impute_mean" ${isNumeric ? '' : 'disabled'}>Mean Impute</option>
@@ -91,7 +112,7 @@ function renderColumnsConfigTable() {
 
         // Outlier dropdown
         const outSelect = `
-            <select id="out-${col}" class="w-full bg-white/[0.03] border border-white/[0.08] rounded px-2 py-1 text-xs focus:outline-none focus:border-primary-500" ${isNumeric ? '' : 'disabled'}>
+            <select id="out-${escapeHtml(col)}" class="w-full bg-white/[0.03] border border-white/[0.08] rounded px-2 py-1 text-xs focus:outline-none focus:border-primary-500" ${isNumeric ? '' : 'disabled'}>
                 <option value="none">No Action</option>
                 <option value="outliers_cap">Cap Outliers (IQR)</option>
                 <option value="outliers_drop">Drop Outlier Rows</option>
@@ -103,7 +124,7 @@ function renderColumnsConfigTable() {
 
         // Scaling & skewness dropdowns
         const scaleSelect = `
-            <select id="scale-${col}" class="w-full bg-white/[0.03] border border-white/[0.08] rounded px-2 py-1 text-xs focus:outline-none focus:border-primary-500" ${isNumeric ? '' : 'disabled'}>
+            <select id="scale-${escapeHtml(col)}" class="w-full bg-white/[0.03] border border-white/[0.08] rounded px-2 py-1 text-xs focus:outline-none focus:border-primary-500" ${isNumeric ? '' : 'disabled'}>
                 <option value="none">No Action</option>
                 <option value="scale_standard">Standardize (Z-score)</option>
                 <option value="scale_minmax">Normalize (MinMax)</option>
@@ -118,7 +139,7 @@ function renderColumnsConfigTable() {
 
         // Encoding & binning dropdown
         const binSelect = `
-            <select id="bin-${col}" class="w-full bg-white/[0.03] border border-white/[0.08] rounded px-2 py-1 text-xs focus:outline-none focus:border-primary-500">
+            <select id="bin-${escapeHtml(col)}" class="w-full bg-white/[0.03] border border-white/[0.08] rounded px-2 py-1 text-xs focus:outline-none focus:border-primary-500">
                 <option value="none">No Action</option>
                 <option value="discretize_equal_width" ${isNumeric ? '' : 'disabled'}>Equal Width Binning (5)</option>
                 <option value="discretize_equal_frequency" ${isNumeric ? '' : 'disabled'}>Equal Freq Binning (5)</option>
@@ -139,8 +160,8 @@ function renderColumnsConfigTable() {
         }[type] || 'bg-white/10 text-white border-white/20';
 
         return `
-            <tr class="hover:bg-white/[0.01] transition-colors" id="row-${col}">
-                <td class="py-3 px-4 font-semibold text-white font-mono whitespace-nowrap">${col}</td>
+            <tr class="hover:bg-white/[0.01] transition-colors" id="row-${escapeHtml(col)}">
+                <td class="py-3 px-4 font-semibold text-white font-mono whitespace-nowrap">${escapeHtml(col)}</td>
                 <td class="py-3 px-3 whitespace-nowrap">
                     <span class="inline-flex px-2 py-0.5 text-[9px] font-bold border rounded-full uppercase ${typeBadgeColor}">${type}</span>
                 </td>
@@ -149,7 +170,7 @@ function renderColumnsConfigTable() {
                 <td class="py-3 px-3">${scaleSelect}</td>
                 <td class="py-3 px-3">${binSelect}</td>
                 <td class="py-3 px-3 text-center">
-                    <input type="checkbox" id="drop-${col}" class="rounded border-white/[0.08] bg-transparent text-primary-500 focus:ring-0 focus:ring-offset-0">
+                    <input type="checkbox" id="drop-${escapeHtml(col)}" class="rounded border-white/[0.08] bg-transparent text-primary-500 focus:ring-0 focus:ring-offset-0">
                 </td>
             </tr>
         `;
@@ -193,14 +214,24 @@ async function fetchRecommendations() {
             const scale = document.getElementById(`scale-${col}`);
             const drop = document.getElementById(`drop-${col}`);
 
-            if (rec.recommended_action === 'drop_column' || rec.recommended_action === 'drop_correlated_column') {
+            const action = rec.recommended_action || '';
+            // Only pre-select an option the dropdown really has (and that isn't disabled)
+            const setIfAvailable = (select, value) => {
+                const option = select && [...select.options].find(o => o.value === value);
+                if (option && !option.disabled && !select.disabled) select.value = value;
+            };
+
+            if (action === 'drop_column' || action === 'drop_correlated_column') {
                 if (drop) drop.checked = true;
-            } else if (rec.recommended_action.startsWith('impute_') && imp) {
-                imp.value = rec.recommended_action;
-            } else if (rec.recommended_action.startsWith('outliers_') || rec.recommended_action.startsWith('cap_') && out) {
-                out.value = rec.recommended_action === 'cap_outliers' ? 'outliers_cap' : rec.recommended_action;
-            } else if (rec.recommended_action.startsWith('apply_log') && scale) {
-                scale.value = rec.recommended_action;
+            } else if (action.startsWith('impute_')) {
+                setIfAvailable(imp, action);
+            } else if (action.startsWith('outliers_')) {
+                setIfAvailable(out, action);
+            } else if (action.startsWith('apply_')) {
+                setIfAvailable(scale, action);
+            } else if (action === 'resample_oversample') {
+                setIfAvailable(document.getElementById('resample-strategy'), action);
+                setIfAvailable(document.getElementById('resample-target-col'), col);
             }
         });
 
@@ -221,6 +252,13 @@ function getSelectedSteps() {
     // If duplicates drop is needed, we always run it first
     // For simplicity, we can inspect a global flag or append it automatically
     steps.push({ action: 'drop_duplicates' });
+
+    // Class imbalance resampling (applied globally before column-level transforms)
+    const resampleStrategy = document.getElementById('resample-strategy')?.value;
+    const resampleTargetCol = document.getElementById('resample-target-col')?.value;
+    if (resampleStrategy && resampleTargetCol) {
+        steps.push({ action: resampleStrategy, column: resampleTargetCol });
+    }
 
     datasetColumns.forEach(col => {
         // Drop column check first
@@ -354,7 +392,7 @@ function renderStatsTable(tbodyId, summary) {
 
         return `
             <tr>
-                <td class="py-2 px-3 font-mono font-medium text-white">${col}</td>
+                <td class="py-2 px-3 font-mono font-medium text-white">${escapeHtml(col)}</td>
                 <td class="py-2 px-3">${meanText}</td>
                 <td class="py-2 px-3">${stdText}</td>
                 <td class="py-2 px-3">${nullCount}</td>
@@ -376,7 +414,7 @@ function renderRowsTable(columns, rows) {
     thead.innerHTML = `
         <tr class="border-b border-white/[0.06] text-gray-500 bg-white/[0.01]">
             ${columns.map(col => `
-                <th class="py-2 px-3 whitespace-nowrap font-mono text-[10px] uppercase font-bold">${col}</th>
+                <th class="py-2 px-3 whitespace-nowrap font-mono text-[10px] uppercase font-bold">${escapeHtml(col)}</th>
             `).join('')}
         </tr>
     `;
@@ -386,8 +424,9 @@ function renderRowsTable(columns, rows) {
         <tr class="hover:bg-white/[0.01] transition-colors border-b border-white/[0.04]">
             ${columns.map(col => {
                 const val = row[col];
-                const text = val !== null && val !== undefined ? val : '<span class="text-gray-600">null</span>';
-                return `<td class="py-2 px-3 font-mono text-[11px] whitespace-nowrap truncate max-w-[120px]" title="${val}">${text}</td>`;
+                const isNull = val === null || val === undefined;
+                const text = isNull ? '<span class="text-gray-600">null</span>' : escapeHtml(val);
+                return `<td class="py-2 px-3 font-mono text-[11px] whitespace-nowrap truncate max-w-[120px]" title="${escapeHtml(val)}">${text}</td>`;
             }).join('')}
         </tr>
     `).join('');
