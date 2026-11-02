@@ -16,7 +16,7 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from app.config import get_settings
+from app.config import DEFAULT_SECRET_KEY, get_settings
 from app.core.exceptions import register_exception_handlers
 from app.core.logging_config import setup_logging
 
@@ -53,6 +53,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         settings.APP_NAME,
         settings.APP_VERSION,
     )
+    if settings.SECRET_KEY == DEFAULT_SECRET_KEY and not settings.DEBUG:
+        logger.warning(
+            "SECRET_KEY is the default placeholder. Set a strong SECRET_KEY in .env before deploying "
+            "(e.g. python -c \"import secrets; print(secrets.token_hex(32))\")."
+        )
     yield
     # ── Shutdown ──────────────────────────────────────────────────
     logger.info("%s shutting down…", settings.APP_NAME)
@@ -62,9 +67,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 app = FastAPI(
     title="AI BI Platform API",
     description=(
-        "Backend API for the AI-Powered Business Intelligence Platform. "
-        "Provides data ingestion, automated ML pipelines, natural-language "
-        "querying, and interactive dashboards."
+        "Backend API for the AI-Powered Business Intelligence Platform: dataset upload, "
+        "profiling, data quality scoring, preprocessing, EDA, feature engineering, "
+        "AutoML training and model evaluation."
     ),
     version=settings.APP_VERSION,
     lifespan=lifespan,
@@ -101,7 +106,7 @@ app.include_router(auth_router.router, prefix="/api/v1/auth", tags=["Authenticat
 app.include_router(users_router.router, prefix="/api/v1/users", tags=["Users"])
 app.include_router(dashboard_router.router, prefix="/api/v1/dashboard", tags=["Dashboard"])
 
-# Phase 4: Dataset Management
+# Phases 4–9: Dataset upload, profiling, quality, preprocessing, EDA, feature engineering
 from app.routers import datasets as datasets_router
 from app.routers import profiling as profiling_router
 from app.routers import quality as quality_router
@@ -115,21 +120,9 @@ app.include_router(preprocessing_router.router, prefix="/api/v1/datasets", tags=
 app.include_router(eda_router.router, prefix="/api/v1/datasets", tags=["Datasets"])
 app.include_router(features_router.router, prefix="/api/v1/datasets", tags=["Datasets"])
 
-# TODO Phase 4: ML Pipeline
-# from app.routers import pipelines as pipelines_router
-# app.include_router(pipelines_router.router, prefix="/api/v1/pipelines", tags=["Pipelines"])
-
-# TODO Phase 5: AI / Natural-Language Querying
-# from app.routers import ai as ai_router
-# app.include_router(ai_router.router, prefix="/api/v1/ai", tags=["AI"])
-
-# TODO Phase 6: Dashboard & Visualisation
-# from app.routers import dashboards as dashboards_router
-# app.include_router(dashboards_router.router, prefix="/api/v1/dashboards", tags=["Dashboards"])
-
-# TODO Phase 7: Reports
-# from app.routers import reports as reports_router
-# app.include_router(reports_router.router, prefix="/api/v1/reports", tags=["Reports"])
+# Phases 10–11: AutoML training and model evaluation
+from app.routers import experiments as experiments_router
+app.include_router(experiments_router.router, prefix="/api/v1/experiments", tags=["AutoML & Evaluation"])
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -192,6 +185,47 @@ async def register_page(request: Request):
     return templates.TemplateResponse(
         request, "pages/register.html", {"title": "Register", "active_page": "register"}
     )
+
+
+@app.get("/forgot-password", tags=["Pages"], include_in_schema=False)
+async def forgot_password_page(request: Request):
+    """Render the forgot password request page."""
+    if templates is None:
+        return JSONResponse(content={"message": "Forgot password page — templates not configured"})
+    return templates.TemplateResponse(
+        request, "pages/forgot_password.html", {"title": "Forgot Password", "active_page": "forgot-password"}
+    )
+
+
+@app.get("/reset-password", tags=["Pages"], include_in_schema=False)
+async def reset_password_page(request: Request):
+    """Render the reset password set page."""
+    if templates is None:
+        return JSONResponse(content={"message": "Reset password page — templates not configured"})
+    return templates.TemplateResponse(
+        request, "pages/reset_password.html", {"title": "Reset Password", "active_page": "reset-password"}
+    )
+
+
+@app.get("/terms", tags=["Pages"], include_in_schema=False)
+async def terms_page(request: Request):
+    """Render the Terms of Service page."""
+    if templates is None:
+        return JSONResponse(content={"message": "Terms page — templates not configured"})
+    return templates.TemplateResponse(
+        request, "pages/terms.html", {"title": "Terms of Service", "active_page": "terms"}
+    )
+
+
+@app.get("/privacy", tags=["Pages"], include_in_schema=False)
+async def privacy_page(request: Request):
+    """Render the Privacy Policy page."""
+    if templates is None:
+        return JSONResponse(content={"message": "Privacy page — templates not configured"})
+    return templates.TemplateResponse(
+        request, "pages/privacy.html", {"title": "Privacy Policy", "active_page": "privacy"}
+    )
+
 
 
 @app.get("/dashboard", tags=["Pages"], include_in_schema=False)
@@ -298,3 +332,30 @@ async def datasets_features_page(request: Request, dataset_id: str):
         }
     )
 
+
+@app.get("/experiments", tags=["Pages"], include_in_schema=False)
+async def experiments_page(request: Request):
+    """Render the AutoML experiments page (create + list)."""
+    if templates is None:
+        return JSONResponse(content={"message": "Experiments page — templates not configured"})
+    return templates.TemplateResponse(
+        request, "pages/experiments.html", {
+            "title": "AutoML Experiments",
+            "active_page": "experiments",
+            "dataset_id": request.query_params.get("dataset_id", ""),
+        }
+    )
+
+
+@app.get("/experiments/{experiment_id}", tags=["Pages"], include_in_schema=False)
+async def experiment_detail_page(request: Request, experiment_id: str):
+    """Render the model leaderboard and evaluation page for one experiment."""
+    if templates is None:
+        return JSONResponse(content={"message": "Experiment page — templates not configured"})
+    return templates.TemplateResponse(
+        request, "pages/experiment_detail.html", {
+            "title": "Model Evaluation",
+            "active_page": "experiments",
+            "experiment_id": experiment_id,
+        }
+    )

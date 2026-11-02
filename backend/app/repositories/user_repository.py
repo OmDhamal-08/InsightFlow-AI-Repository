@@ -142,3 +142,10 @@ class UserRepository:
                 setattr(user.profile, key, value)
         await self.db.flush()
         return user.profile
+
+    async def update_password(self, user: User, hashed_password: str) -> None:
+        """Update user's password."""
+        user.hashed_password = hashed_password
+        self.db.add(user)
+        await self.db.flush()
+

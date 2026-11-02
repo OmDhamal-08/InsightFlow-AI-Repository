@@ -240,7 +240,8 @@ class DataQualityAnalyzer:
         for col, o_stats in outlier_report.items():
             o_pct = o_stats["outlier_percentage"]
             if o_pct > 0:
-                action = "drop_outlier_rows" if o_pct < 2.0 else "cap_outliers"
+                # Few outliers → drop those rows; many → cap them at the IQR fences
+                action = "outliers_drop" if o_pct < 2.0 else "outliers_cap"
                 recommendations.append({
                     "description": f"Column '{col}' has {o_stats['outlier_count']} outliers ({o_pct:.1f}%).",
                     "severity": "warning",
@@ -277,10 +278,13 @@ class DataQualityAnalyzer:
             ratio = i_stats["majority_to_minority_ratio"]
             if ratio > 4.0:
                 recommendations.append({
-                    "description": f"Target column candidate '{col}' is imbalanced (ratio {ratio:.1f}:1).",
+                    "description": (
+                        f"Column '{col}' has severe class imbalance (ratio {ratio:.1f}:1). If it is your "
+                        f"prediction target, consider over-sampling the minority class before training."
+                    ),
                     "severity": "warning",
                     "column": col,
-                    "recommended_action": "apply_smote",
+                    "recommended_action": "resample_oversample",
                     "value": ratio,
                 })
 

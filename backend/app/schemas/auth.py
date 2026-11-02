@@ -2,6 +2,21 @@
 
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
+SPECIAL_CHARS = "!@#$%^&*()_+-=[]{}|;:,.<>?"
+
+
+def check_password_strength(v: str) -> str:
+    """Require upper- and lowercase letters, a digit and a special character."""
+    if not any(c.isupper() for c in v):
+        raise ValueError("Password must contain at least one uppercase letter")
+    if not any(c.islower() for c in v):
+        raise ValueError("Password must contain at least one lowercase letter")
+    if not any(c.isdigit() for c in v):
+        raise ValueError("Password must contain at least one digit")
+    if not any(c in SPECIAL_CHARS for c in v):
+        raise ValueError("Password must contain at least one special character")
+    return v
+
 
 class UserRegister(BaseModel):
     """Registration request payload."""
@@ -15,15 +30,7 @@ class UserRegister(BaseModel):
     @classmethod
     def password_strength(cls, v: str) -> str:
         """Ensure password has uppercase, lowercase, digit, and special char."""
-        if not any(c.isupper() for c in v):
-            raise ValueError("Password must contain at least one uppercase letter")
-        if not any(c.islower() for c in v):
-            raise ValueError("Password must contain at least one lowercase letter")
-        if not any(c.isdigit() for c in v):
-            raise ValueError("Password must contain at least one digit")
-        if not any(c in "!@#$%^&*()_+-=[]{}|;:,.<>?" for c in v):
-            raise ValueError("Password must contain at least one special character")
-        return v
+        return check_password_strength(v)
 
 
 class UserLogin(BaseModel):
@@ -44,3 +51,35 @@ class MessageResponse(BaseModel):
     """Generic message response."""
 
     message: str
+
+
+class ForgotPasswordRequest(BaseModel):
+    """Payload to request password reset token."""
+
+    email: EmailStr
+
+
+class ResetPasswordRequest(BaseModel):
+    """Payload to reset password using token."""
+
+    token: str
+    new_password: str = Field(min_length=8, max_length=128)
+
+    @field_validator("new_password")
+    @classmethod
+    def password_strength(cls, v: str) -> str:
+        """Ensure password has uppercase, lowercase, digit, and special char."""
+        return check_password_strength(v)
+
+
+
+class PasswordChangeRequest(BaseModel):
+    """Change password while logged in."""
+
+    current_password: str = Field(min_length=1)
+    new_password: str = Field(min_length=8, max_length=128)
+
+    @field_validator("new_password")
+    @classmethod
+    def password_strength(cls, v: str) -> str:
+        return check_password_strength(v)

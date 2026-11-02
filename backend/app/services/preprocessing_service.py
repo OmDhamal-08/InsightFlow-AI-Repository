@@ -15,7 +15,7 @@ import pandas as pd
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import NotFoundException, BadRequestException
-from app.ml.preprocessor import DatasetPreprocessor
+from app.ml.preprocessor import DatasetPreprocessor, PreprocessingError
 from app.models.dataset import Dataset
 from app.models.pipeline import PreprocessingPipeline
 from app.repositories.dataset_repository import DatasetRepository
@@ -53,7 +53,10 @@ class PreprocessingService:
         """Run transformation preview on a sample of the dataset."""
         dataset = await self._verify_dataset(dataset_id, user_id)
         df = self._load_dataframe(dataset)
-        return DatasetPreprocessor.preview(df, steps)
+        try:
+            return DatasetPreprocessor.preview(df, steps)
+        except PreprocessingError as exc:
+            raise BadRequestException(detail=str(exc)) from exc
 
     async def apply_pipeline(
         self,
@@ -71,7 +74,12 @@ class PreprocessingService:
         df = self._load_dataframe(dataset)
 
         logger.info("Applying %d preprocessing steps to dataset=%s", len(steps), dataset_id)
-        processed_df, config_params = DatasetPreprocessor.apply(df, steps)
+        try:
+            processed_df, config_params = DatasetPreprocessor.apply(df, steps)
+        except PreprocessingError as exc:
+            raise BadRequestException(detail=str(exc)) from exc
+        if processed_df.empty:
+            raise BadRequestException(detail="These steps remove every row — nothing would be left to save.")
 
         # Write output file
         file_id = uuid.uuid4()

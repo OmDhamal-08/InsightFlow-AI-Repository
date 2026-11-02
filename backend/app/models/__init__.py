@@ -11,5 +11,9 @@ from app.models.quality import QualityResult  # noqa: F401
 from app.models.pipeline import PreprocessingPipeline  # noqa: F401
 from app.models.eda import EdaResult  # noqa: F401
 from app.models.feature import FeatureSet  # noqa: F401
+from app.models.experiment import Experiment, TrainedModel  # noqa: F401
 
-__all__ = ["User", "Profile", "RefreshToken", "Dataset", "ProfilingResult", "QualityResult", "PreprocessingPipeline", "EdaResult", "FeatureSet"]
+__all__ = [
+    "User", "Profile", "RefreshToken", "Dataset", "ProfilingResult", "QualityResult",
+    "PreprocessingPipeline", "EdaResult", "FeatureSet", "Experiment", "TrainedModel",
+]

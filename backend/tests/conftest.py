@@ -18,7 +18,7 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 
-from app.database import Base, get_db
+from app.database import Base, enable_sqlite_foreign_keys, get_db
 from app.main import app as fastapi_app
 
 # Import all models so Base.metadata is populated
@@ -32,6 +32,8 @@ test_engine = create_async_engine(
     echo=False,
     future=True,
 )
+# Enforce ON DELETE CASCADE like the app engine does
+enable_sqlite_foreign_keys(test_engine)
 
 TestSessionLocal = async_sessionmaker(
     test_engine,
@@ -71,10 +73,11 @@ def tmp_upload_dir(tmp_path):
     from app.config import get_settings
 
     settings = get_settings()
-    original = settings.UPLOAD_DIR
+    original_uploads, original_models = settings.UPLOAD_DIR, settings.MODELS_DIR
     settings.UPLOAD_DIR = str(tmp_path / "uploads")
+    settings.MODELS_DIR = str(tmp_path / "models")
     yield
-    settings.UPLOAD_DIR = original
+    settings.UPLOAD_DIR, settings.MODELS_DIR = original_uploads, original_models
 
 
 @pytest_asyncio.fixture

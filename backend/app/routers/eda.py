@@ -62,3 +62,20 @@ async def list_summary_eda(
     """Retrieve pre-calculated overview summary charts for a dataset."""
     service = EdaService(db)
     return await service.list_summary_eda(dataset_id, current_user.id)
+
+
+@router.get("/{dataset_id}/eda/bivariate", response_model=dict)
+async def get_bivariate_analysis(
+    dataset_id: uuid.UUID,
+    target_column: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Compute target-aware bivariate statistical associations and chart data.
+
+    Returns Pearson/Spearman, ANOVA, Kruskal-Wallis, Chi-Square/Cramér's V
+    tests plus bivariate chart coordinates for the specified target column.
+    """
+    service = EdaService(db)
+    return await service.get_bivariate_analysis(dataset_id, current_user.id, target_column)
+

@@ -59,9 +59,9 @@ class FeatureEngineer:
             df[f"{col}_year"] = dt_series.dt.year.fillna(-1).astype(int)
             df[f"{col}_month"] = dt_series.dt.month.fillna(-1).astype(int)
             df[f"{col}_day"] = dt_series.dt.day.fillna(-1).astype(int)
-            df[f"{col}_dayofweek"] = dt_series.dt.dayofweek.fillna(-1).astype(int)
+            df[f"{col}_dayofweek"] = dt_series.dt.day_of_week.fillna(-1).astype(int)
             df[f"{col}_hour"] = dt_series.dt.hour.fillna(-1).astype(int)
-            df[f"{col}_is_weekend"] = (dt_series.dt.dayofweek >= 5).astype(int)
+            df[f"{col}_is_weekend"] = (dt_series.dt.day_of_week >= 5).astype(int)
 
             new_cols = [
                 f"{col}_year", f"{col}_month", f"{col}_day", 
@@ -149,7 +149,8 @@ class FeatureEngineer:
             return df, []
 
         new_features = []
-        str_series = df[col].astype(str).fillna("")
+        # Fill missing values first, otherwise NaN becomes the 3-character string "nan"
+        str_series = df[col].fillna("").astype(str)
 
         # Character length
         char_name = f"{col}_char_len"
@@ -219,8 +220,18 @@ class FeatureEngineer:
 
         new_features = []
         try:
-            # Prepare feature matrix X (drop target)
+            # Prepare feature matrix X (drop target and ID-like columns where every value is unique)
             x_df = df.drop(columns=[target_col]).copy()
+            from app.ml.automl import looks_like_id
+
+            id_like = [
+                c for c in x_df.columns
+                if looks_like_id(c, x_df[c].dropna())
+                or (not pd.api.types.is_numeric_dtype(x_df[c]) and x_df[c].nunique() >= 0.95 * len(x_df))
+            ]
+            x_df = x_df.drop(columns=id_like)
+            if x_df.empty:
+                return df, []
             y = df[target_col].copy()
 
             # Align indices and drop target nulls
@@ -264,6 +275,7 @@ class FeatureEngineer:
                     "name": col,
                     "parent_columns": [col],
                     "formula": f"Selected feature (Mutual Information score: {score:.4f})",
+                    "target_column": target_col,  # needed to re-apply the selection later
                 })
 
             # Drop other columns, keeping only target and selected K features!

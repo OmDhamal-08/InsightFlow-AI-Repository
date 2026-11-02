@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime, timezone
 
 from sqlalchemy import DateTime, ForeignKey, JSON, Integer, String, Uuid
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, backref, mapped_column, relationship
 
 from app.database import Base
 
@@ -37,7 +37,11 @@ class FeatureSet(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
     # Relationships
-    dataset: Mapped["Dataset"] = relationship("Dataset", backref="feature_sets")
+    dataset: Mapped["Dataset"] = relationship(
+        "Dataset",
+        # Deleting a dataset deletes its feature sets
+        backref=backref("feature_sets", cascade="all, delete-orphan", passive_deletes=True),
+    )
 
     def __repr__(self) -> str:
         return f"<FeatureSet {self.name} method={self.method} count={self.feature_count}>"

@@ -111,32 +111,32 @@ class FeatureService:
 
         df = self._load_dataframe(dataset)
 
-        # Reconstruct config from engineered features lists
-        # For date, PCA, interaction, polynomial, text, selection:
-        # We can extract the parameters from parent columns and method details
-        config = {}
-        if feature_set.method in ("date", "text"):
-            config["column"] = feature_set.features[0]["parent_columns"][0]
-        elif feature_set.method in ("interaction", "polynomial", "pca"):
-            config["columns"] = feature_set.features[0]["parent_columns"]
-            if feature_set.method == "pca":
-                config["n_components"] = feature_set.feature_count
-        elif feature_set.method == "selection":
-            # For selection, features list has parent columns selected.
-            # We can reconstruct this list by passing it to selection logic
-            config["target_column"] = dataset.column_names[-1] # fallback to last column
-            config["k"] = feature_set.feature_count
-            # Directly filter the columns
-            cols_to_keep = [f["name"] for f in feature_set.features] + [config["target_column"]]
-            # To ensure it maps properly, we drop others
-            valid_cols = [c for c in cols_to_keep if c in df.columns]
+        # Rebuild the generation config from the stored feature definitions
+        parents: list[str] = []
+        for feature in feature_set.features:
+            for parent in feature.get("parent_columns", []):
+                if parent not in parents:
+                    parents.append(parent)
 
         logger.info("Applying feature engineering set id=%s to dataset=%s", feature_set_id, dataset_id)
-        
         if feature_set.method == "selection":
-            processed_df = df[valid_cols]
+            target = feature_set.features[0].get("target_column")
+            if not target or target not in df.columns:
+                raise BadRequestException(
+                    detail="This selection set has no recorded target column — please generate it again."
+                )
+            cols_to_keep = [f["name"] for f in feature_set.features if f["name"] in df.columns] + [target]
+            processed_df = df[cols_to_keep]
         else:
-            processed_df, _ = FeatureEngineer.generate_features(df, feature_set.method, config)
+            if feature_set.method in ("date", "text"):
+                config = {"column": parents[0]}
+            elif feature_set.method == "pca":
+                config = {"columns": parents, "n_components": feature_set.feature_count}
+            else:  # interaction, polynomial
+                config = {"columns": parents}
+            processed_df, produced = FeatureEngineer.generate_features(df, feature_set.method, config)
+            if not produced:
+                raise BadRequestException(detail="Feature engineering produced no columns on the full dataset.")
 
         # Save output file
         file_id = uuid.uuid4()

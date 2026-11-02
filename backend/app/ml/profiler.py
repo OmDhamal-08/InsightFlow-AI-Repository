@@ -8,6 +8,8 @@ Converts all data types to JSON-compatible standard Python types.
 from datetime import datetime
 
 import numpy as np
+import warnings
+
 import pandas as pd
 
 
@@ -126,7 +128,9 @@ class DatasetProfiler:
             # Try to convert a sample of the column to dates
             sample = series.head(100)
             try:
-                parsed = pd.to_datetime(sample, errors="coerce")
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore")  # mixed/unknown formats are expected here
+                    parsed = pd.to_datetime(sample, errors="coerce")
                 # If at least 80% of non-null values parse as valid datetimes and it's not all NaNs
                 if parsed.notna().sum() > 0.8 * len(sample) and parsed.notna().sum() > 0:
                     return "datetime"

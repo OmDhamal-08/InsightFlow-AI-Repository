@@ -5,6 +5,7 @@ missing values, distributions) and custom interactive plots (normality tests, bo
 QQ-plots, and scatter plots with linear regression lines).
 """
 
+import math
 import numpy as np
 import pandas as pd
 import scipy.stats as stats
@@ -12,6 +13,27 @@ import scipy.stats as stats
 
 class EdaGenerator:
     """Calculates statistics coordinates and AI insights for dataset visualization."""
+
+    @classmethod
+    def _to_json_val(cls, val):
+        """Convert numpy/python numeric types to JSON-serializable numbers."""
+        if val is None:
+            return None
+        try:
+            if pd.isna(val):
+                return None
+        except Exception:
+            pass
+
+        if isinstance(val, (int, np.integer)):
+            return int(val)
+
+        if isinstance(val, (float, np.floating)):
+            if math.isnan(val) or math.isinf(val):
+                return None
+            return float(val)
+
+        return val
 
     @classmethod
     def generate_summary(cls, df: pd.DataFrame, column_types: dict[str, str]) -> list[dict]:
@@ -531,3 +553,461 @@ class EdaGenerator:
                 return None
             return float(val)
         return val
+
+    @classmethod
+    def generate_bivariate_analysis(cls, df: pd.DataFrame, target_column: str, column_types: dict[str, str]) -> dict:
+        """Generate target-aware bivariate statistical analysis and chart data.
+
+        Computes association tests between every feature column and the
+        designated target column, selecting the appropriate statistical test
+        based on the column types (numeric vs categorical).
+
+        Args:
+            df: The Pandas DataFrame to analyze.
+            target_column: Name of the target column.
+            column_types: Dictionary mapping column names to their detected type
+                          ('numeric', 'categorical', or 'boolean').
+
+        Returns:
+            Dict with keys ``target_column``, ``target_type``, ``associations``
+            (per-feature test results), and ``bivariate_charts`` (Plotly-ready
+            chart data dicts).
+        """
+        # ── Edge case: empty or missing target ──────────────────────
+        if df.empty or target_column not in df.columns:
+            return {
+                "target_column": target_column,
+                "target_type": "unknown",
+                "associations": [],
+                "bivariate_charts": [],
+            }
+
+        target_type_raw = column_types.get(target_column, "numeric")
+        target_type = "numeric" if target_type_raw == "numeric" else "categorical"
+
+        feature_cols = [c for c in df.columns if c != target_column and c in column_types]
+        numeric_features = [c for c in feature_cols if column_types[c] == "numeric"]
+        categorical_features = [c for c in feature_cols if column_types[c] in ("categorical", "boolean")]
+
+        associations: list[dict] = []
+        bivariate_charts: list[dict] = []
+
+        # ── Helper: classify effect-size strength ───────────────────
+        def _strength(effect: float | None) -> str:
+            if effect is None:
+                return "none"
+            abs_e = abs(effect)
+            if abs_e >= 0.5:
+                return "strong"
+            if abs_e >= 0.3:
+                return "moderate"
+            if abs_e >= 0.1:
+                return "weak"
+            return "none"
+
+        # ── CASE 1: Numeric target + Numeric feature ────────────────
+        if target_type == "numeric":
+            # Pre-compute absolute Pearson correlations to rank features
+            corr_scores: list[tuple[str, float]] = []
+            for col in numeric_features:
+                aligned = df[[target_column, col]].dropna()
+                if len(aligned) < 3 or aligned[col].std() == 0 or aligned[target_column].std() == 0:
+                    continue
+                try:
+                    r, _ = stats.pearsonr(aligned[target_column], aligned[col])
+                    corr_scores.append((col, abs(r)))
+                except Exception:
+                    continue
+            corr_scores.sort(key=lambda x: x[1], reverse=True)
+            top_numeric = [c for c, _ in corr_scores[:6]]
+
+            for col in numeric_features:
+                aligned = df[[target_column, col]].dropna()
+                if len(aligned) < 3 or aligned[col].std() == 0 or aligned[target_column].std() == 0:
+                    associations.append({
+                        "column": col,
+                        "column_type": "numeric",
+                        "test_name": "Pearson Correlation",
+                        "statistic": None,
+                        "p_value": None,
+                        "effect_size": None,
+                        "strength": "none",
+                        "insight": f"Column '{col}' has insufficient non-null data or zero variance for correlation analysis.",
+                    })
+                    continue
+
+                try:
+                    pearson_r, pearson_p = stats.pearsonr(aligned[target_column], aligned[col])
+                    spearman_r, spearman_p = stats.spearmanr(aligned[target_column], aligned[col])
+                except Exception:
+                    pearson_r = spearman_r = None
+                    pearson_p = spearman_p = None
+
+                # Use the test with the stronger absolute effect as primary
+                if pearson_r is not None and spearman_r is not None:
+                    if abs(spearman_r) > abs(pearson_r):
+                        primary_name = "Spearman Correlation"
+                        primary_stat = cls._to_json_val(spearman_r)
+                        primary_p = cls._to_json_val(spearman_p)
+                        effect = cls._to_json_val(spearman_r)
+                    else:
+                        primary_name = "Pearson Correlation"
+                        primary_stat = cls._to_json_val(pearson_r)
+                        primary_p = cls._to_json_val(pearson_p)
+                        effect = cls._to_json_val(pearson_r)
+                else:
+                    primary_name = "Pearson Correlation"
+                    primary_stat = cls._to_json_val(pearson_r)
+                    primary_p = cls._to_json_val(pearson_p)
+                    effect = cls._to_json_val(pearson_r)
+
+                s = _strength(effect)
+                direction = "positive" if (effect or 0) > 0 else "negative"
+                r_str = f"{effect:.3f}" if effect is not None else "N/A"
+                p_str = f"{primary_p:.4f}" if primary_p is not None else "N/A"
+                insight = (
+                    f"'{col}' shows a {s} {direction} {primary_name.lower()} "
+                    f"with '{target_column}' (r = {r_str}, p = {p_str})."
+                    if effect is not None and primary_p is not None
+                    else f"Could not compute correlation between '{col}' and '{target_column}'."
+                )
+
+                associations.append({
+                    "column": col,
+                    "column_type": "numeric",
+                    "test_name": primary_name,
+                    "statistic": primary_stat,
+                    "p_value": primary_p,
+                    "effect_size": effect,
+                    "strength": s,
+                    "insight": insight,
+                })
+
+                # Chart: scatter + regression for top 6
+                if col in top_numeric:
+                    x = aligned[col].values
+                    y = aligned[target_column].values
+                    # Sample for large datasets
+                    if len(x) > 1000:
+                        idx = np.random.choice(len(x), size=1000, replace=False)
+                        x, y = x[idx], y[idx]
+                    try:
+                        lr = stats.linregress(x, y)
+                        slope, intercept, r_sq = float(lr.slope), float(lr.intercept), float(lr.rvalue ** 2)
+                    except Exception:
+                        slope, intercept, r_sq = 0.0, 0.0, 0.0
+
+                    bivariate_charts.append({
+                        "chart_type": "scatter_regression",
+                        "chart_config": {
+                            "title": f"{col} vs {target_column}",
+                            "x_label": col,
+                            "y_label": target_column,
+                        },
+                        "chart_data": {
+                            "points": [{"x": cls._to_json_val(xv), "y": cls._to_json_val(yv)} for xv, yv in zip(x, y)],
+                            "regression": {"slope": slope, "intercept": intercept, "r_squared": r_sq},
+                        },
+                        "feature_column": col,
+                        "insight": f"Linear trend: Y = {slope:.3f}X + {intercept:.2f} (R² = {r_sq:.3f}).",
+                    })
+
+        # ── CASE 2: Numeric target + Categorical feature ────────────
+        if target_type == "numeric":
+            for col in categorical_features:
+                n_unique = df[col].nunique()
+                if n_unique > 15 or n_unique < 2:
+                    associations.append({
+                        "column": col,
+                        "column_type": column_types[col],
+                        "test_name": "ANOVA F-test",
+                        "statistic": None,
+                        "p_value": None,
+                        "effect_size": None,
+                        "strength": "none",
+                        "insight": f"Column '{col}' skipped: {'too many' if n_unique > 15 else 'fewer than 2'} unique categories ({n_unique}).",
+                    })
+                    continue
+
+                aligned = df[[target_column, col]].dropna()
+                if aligned.empty:
+                    associations.append({
+                        "column": col,
+                        "column_type": column_types[col],
+                        "test_name": "ANOVA F-test",
+                        "statistic": None, "p_value": None, "effect_size": None,
+                        "strength": "none",
+                        "insight": f"Column '{col}' has no overlapping non-null rows with the target.",
+                    })
+                    continue
+
+                groups = [grp[target_column].values for _, grp in aligned.groupby(col) if len(grp) >= 1]
+                if len(groups) < 2:
+                    associations.append({
+                        "column": col, "column_type": column_types[col],
+                        "test_name": "ANOVA F-test",
+                        "statistic": None, "p_value": None, "effect_size": None,
+                        "strength": "none",
+                        "insight": f"Column '{col}' has fewer than 2 populated groups for ANOVA.",
+                    })
+                    continue
+
+                try:
+                    f_stat, p_val = stats.f_oneway(*groups)
+                except Exception:
+                    f_stat, p_val = None, None
+
+                # Eta-squared = SS_between / SS_total
+                eta_sq = None
+                if f_stat is not None:
+                    grand_mean = aligned[target_column].mean()
+                    ss_between = sum(len(g) * (g.mean() - grand_mean) ** 2 for g in groups)
+                    ss_total = ((aligned[target_column] - grand_mean) ** 2).sum()
+                    eta_sq = float(ss_between / ss_total) if ss_total > 0 else 0.0
+
+                s = _strength(eta_sq)
+                f_str = f"{f_stat:.2f}" if f_stat is not None else "N/A"
+                p_str = f"{p_val:.4f}" if p_val is not None else "N/A"
+                eta_str = f"{eta_sq:.3f}" if eta_sq is not None else "N/A"
+                insight = (
+                    f"ANOVA F-test between '{col}' and '{target_column}': F = {f_str}, "
+                    f"p = {p_str}, η² = {eta_str} ({s} effect)."
+                    if f_stat is not None and p_val is not None and eta_sq is not None
+                    else f"Could not compute ANOVA for '{col}' vs '{target_column}'."
+                )
+
+                associations.append({
+                    "column": col,
+                    "column_type": column_types[col],
+                    "test_name": "ANOVA F-test",
+                    "statistic": cls._to_json_val(f_stat),
+                    "p_value": cls._to_json_val(p_val),
+                    "effect_size": cls._to_json_val(eta_sq),
+                    "strength": s,
+                    "insight": insight,
+                })
+
+                # Chart: grouped box plot (categories on x-axis, target distribution on y)
+                box_data: dict[str, dict] = {}
+                for cat_val, grp in aligned.groupby(col):
+                    vals = grp[target_column].dropna()
+                    if vals.empty:
+                        continue
+                    box_data[str(cat_val)] = {
+                        "min": cls._to_json_val(vals.min()),
+                        "q1": cls._to_json_val(vals.quantile(0.25)),
+                        "median": cls._to_json_val(vals.median()),
+                        "q3": cls._to_json_val(vals.quantile(0.75)),
+                        "max": cls._to_json_val(vals.max()),
+                    }
+
+                bivariate_charts.append({
+                    "chart_type": "grouped_box",
+                    "chart_config": {
+                        "title": f"{target_column} by {col}",
+                        "x_label": col,
+                        "y_label": target_column,
+                    },
+                    "chart_data": {"groups": box_data},
+                    "feature_column": col,
+                    "insight": f"Box plots of '{target_column}' grouped by '{col}' categories.",
+                })
+
+        # ── CASE 3: Categorical target + Numeric feature ────────────
+        if target_type == "categorical":
+            # Rank by Kruskal-Wallis H statistic to pick top 6
+            kw_scores: list[tuple[str, float]] = []
+            for col in numeric_features:
+                aligned = df[[target_column, col]].dropna()
+                if aligned.empty or aligned[col].std() == 0:
+                    continue
+                groups = [grp[col].values for _, grp in aligned.groupby(target_column) if len(grp) >= 1]
+                if len(groups) < 2:
+                    continue
+                try:
+                    h_stat, _ = stats.kruskal(*groups)
+                    kw_scores.append((col, float(h_stat)))
+                except Exception:
+                    continue
+            kw_scores.sort(key=lambda x: x[1], reverse=True)
+            top_kw = {c for c, _ in kw_scores[:6]}
+
+            for col in numeric_features:
+                aligned = df[[target_column, col]].dropna()
+                if aligned.empty or aligned[col].std() == 0:
+                    associations.append({
+                        "column": col, "column_type": "numeric",
+                        "test_name": "Kruskal-Wallis H-test",
+                        "statistic": None, "p_value": None, "effect_size": None,
+                        "strength": "none",
+                        "insight": f"Column '{col}' has insufficient data or zero variance.",
+                    })
+                    continue
+
+                groups = [grp[col].values for _, grp in aligned.groupby(target_column) if len(grp) >= 1]
+                if len(groups) < 2:
+                    associations.append({
+                        "column": col, "column_type": "numeric",
+                        "test_name": "Kruskal-Wallis H-test",
+                        "statistic": None, "p_value": None, "effect_size": None,
+                        "strength": "none",
+                        "insight": f"Column '{col}' has fewer than 2 target groups.",
+                    })
+                    continue
+
+                try:
+                    h_stat, p_val = stats.kruskal(*groups)
+                except Exception:
+                    h_stat, p_val = None, None
+
+                # Epsilon-squared as effect size: H / (n - 1)
+                n = len(aligned)
+                eps_sq = float(h_stat / (n - 1)) if h_stat is not None and n > 1 else None
+
+                s = _strength(eps_sq)
+                h_str = f"{h_stat:.2f}" if h_stat is not None else "N/A"
+                p_str = f"{p_val:.4f}" if p_val is not None else "N/A"
+                eps_str = f"{eps_sq:.3f}" if eps_sq is not None else "N/A"
+                insight = (
+                    f"Kruskal-Wallis test for '{col}' across '{target_column}' classes: "
+                    f"H = {h_str}, p = {p_str}, "
+                    f"ε² = {eps_str} ({s} effect)."
+                    if h_stat is not None and p_val is not None and eps_sq is not None
+                    else f"Could not compute Kruskal-Wallis for '{col}'."
+                )
+
+                associations.append({
+                    "column": col,
+                    "column_type": "numeric",
+                    "test_name": "Kruskal-Wallis H-test",
+                    "statistic": cls._to_json_val(h_stat),
+                    "p_value": cls._to_json_val(p_val),
+                    "effect_size": cls._to_json_val(eps_sq),
+                    "strength": s,
+                    "insight": insight,
+                })
+
+                # Chart: grouped box plot for top 6 features
+                if col in top_kw:
+                    box_data = {}
+                    for cls_val, grp in aligned.groupby(target_column):
+                        vals = grp[col].dropna()
+                        if vals.empty:
+                            continue
+                        box_data[str(cls_val)] = {
+                            "min": cls._to_json_val(vals.min()),
+                            "q1": cls._to_json_val(vals.quantile(0.25)),
+                            "median": cls._to_json_val(vals.median()),
+                            "q3": cls._to_json_val(vals.quantile(0.75)),
+                            "max": cls._to_json_val(vals.max()),
+                        }
+
+                    bivariate_charts.append({
+                        "chart_type": "grouped_box",
+                        "chart_config": {
+                            "title": f"{col} by {target_column}",
+                            "x_label": target_column,
+                            "y_label": col,
+                        },
+                        "chart_data": {"groups": box_data},
+                        "feature_column": col,
+                        "insight": f"Distribution of '{col}' across '{target_column}' classes.",
+                    })
+
+        # ── CASE 4: Categorical target + Categorical feature ────────
+        if target_type == "categorical":
+            for col in categorical_features:
+                n_unique = df[col].nunique()
+                if n_unique > 15 or n_unique < 2:
+                    associations.append({
+                        "column": col, "column_type": column_types[col],
+                        "test_name": "Chi-Square / Cramér's V",
+                        "statistic": None, "p_value": None, "effect_size": None,
+                        "strength": "none",
+                        "insight": f"Column '{col}' skipped: {'too many' if n_unique > 15 else 'fewer than 2'} unique values ({n_unique}).",
+                    })
+                    continue
+
+                aligned = df[[target_column, col]].dropna()
+                if aligned.empty:
+                    associations.append({
+                        "column": col, "column_type": column_types[col],
+                        "test_name": "Chi-Square / Cramér's V",
+                        "statistic": None, "p_value": None, "effect_size": None,
+                        "strength": "none",
+                        "insight": f"No overlapping non-null data for '{col}' and '{target_column}'.",
+                    })
+                    continue
+
+                contingency = pd.crosstab(aligned[target_column], aligned[col])
+                if contingency.shape[0] < 2 or contingency.shape[1] < 2:
+                    associations.append({
+                        "column": col, "column_type": column_types[col],
+                        "test_name": "Chi-Square / Cramér's V",
+                        "statistic": None, "p_value": None, "effect_size": None,
+                        "strength": "none",
+                        "insight": f"Contingency table for '{col}' is degenerate (fewer than 2 rows or columns).",
+                    })
+                    continue
+
+                try:
+                    chi2, p_val, dof, _ = stats.chi2_contingency(contingency)
+                except Exception:
+                    chi2, p_val, dof = None, None, None
+
+                # Cramér's V = sqrt(chi2 / (n * (min(r, c) - 1)))
+                cramers_v = None
+                if chi2 is not None:
+                    n = contingency.values.sum()
+                    min_dim = min(contingency.shape[0], contingency.shape[1]) - 1
+                    cramers_v = float(np.sqrt(chi2 / (n * min_dim))) if n > 0 and min_dim > 0 else 0.0
+
+                s = _strength(cramers_v)
+                chi_str = f"{chi2:.2f}" if chi2 is not None else "N/A"
+                p_str = f"{p_val:.4f}" if p_val is not None else "N/A"
+                v_str = f"{cramers_v:.3f}" if cramers_v is not None else "N/A"
+                insight = (
+                    f"Chi-Square test between '{col}' and '{target_column}': "
+                    f"χ² = {chi_str}, p = {p_str}, "
+                    f"Cramér's V = {v_str} ({s} association)."
+                    if chi2 is not None and p_val is not None and cramers_v is not None
+                    else f"Could not compute Chi-Square for '{col}' vs '{target_column}'."
+                )
+
+                associations.append({
+                    "column": col,
+                    "column_type": column_types[col],
+                    "test_name": "Chi-Square / Cramér's V",
+                    "statistic": cls._to_json_val(chi2),
+                    "p_value": cls._to_json_val(p_val),
+                    "effect_size": cls._to_json_val(cramers_v),
+                    "strength": s,
+                    "insight": insight,
+                })
+
+                # Chart: grouped bar (contingency counts)
+                bar_data: dict[str, dict[str, int]] = {}
+                for target_val in contingency.index:
+                    bar_data[str(target_val)] = {
+                        str(feat_val): int(contingency.loc[target_val, feat_val])
+                        for feat_val in contingency.columns
+                    }
+
+                bivariate_charts.append({
+                    "chart_type": "grouped_bar",
+                    "chart_config": {
+                        "title": f"{col} vs {target_column}",
+                        "x_label": col,
+                        "y_label": "Count",
+                    },
+                    "chart_data": {"groups": bar_data, "categories": [str(c) for c in contingency.columns]},
+                    "feature_column": col,
+                    "insight": f"Contingency counts of '{col}' across '{target_column}' classes.",
+                })
+
+        return {
+            "target_column": target_column,
+            "target_type": target_type,
+            "associations": associations,
+            "bivariate_charts": bivariate_charts,
+        }

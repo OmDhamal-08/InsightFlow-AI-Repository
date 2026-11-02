@@ -36,7 +36,7 @@ async def test_get_dashboard_summary_authenticated(client: AsyncClient):
     data = resp.json()
     assert "datasets_count" in data
     assert "models_count" in data
-    assert "reports_count" in data
+    assert "experiments_count" in data
     assert "data_quality_score" in data
 
 

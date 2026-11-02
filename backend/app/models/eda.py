@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime, timezone
 
 from sqlalchemy import DateTime, ForeignKey, JSON, String, Text, Uuid
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, backref, mapped_column, relationship
 
 from app.database import Base
 
@@ -36,7 +36,11 @@ class EdaResult(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
     # Relationships
-    dataset: Mapped["Dataset"] = relationship("Dataset", backref="eda_results")
+    dataset: Mapped["Dataset"] = relationship(
+        "Dataset",
+        # Deleting a dataset deletes its EDA charts
+        backref=backref("eda_results", cascade="all, delete-orphan", passive_deletes=True),
+    )
 
     def __repr__(self) -> str:
         return f"<EdaResult {self.chart_type} for dataset={self.dataset_id}>"

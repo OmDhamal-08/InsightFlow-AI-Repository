@@ -50,10 +50,3 @@ class UserWithProfile(BaseModel):
     profile: ProfileRead | None = None
 
     model_config = {"from_attributes": True}
-
-
-class PasswordChange(BaseModel):
-    """Request body for changing password."""
-
-    current_password: str = Field(min_length=1)
-    new_password: str = Field(min_length=8, max_length=128)

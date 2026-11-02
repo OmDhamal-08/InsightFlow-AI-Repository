@@ -176,6 +176,13 @@ class DatasetService:
             file_path.unlink()
             logger.info("Deleted file: %s", file_path)
 
+        # Remove trained-model files of experiments on this dataset (DB rows cascade)
+        from app.repositories.experiment_repository import ExperimentRepository
+        from app.services.experiment_service import remove_experiment_artifacts
+
+        for experiment_id in await ExperimentRepository(self.repo.db).list_ids_for_dataset(dataset_id):
+            remove_experiment_artifacts(experiment_id)
+
         # Remove DB record
         await self.repo.delete_dataset(dataset_id, user_id)
         logger.info("Dataset deleted: %s (id=%s)", ds.name, ds.id)

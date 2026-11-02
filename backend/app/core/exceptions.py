@@ -4,10 +4,13 @@ Provides a hierarchy of application exceptions that map cleanly
 to HTTP status codes, plus a handler to convert them into JSON responses.
 """
 
+import logging
 from typing import Any
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+
+logger = logging.getLogger(__name__)
 
 
 class AppException(Exception):
@@ -112,6 +115,19 @@ async def app_exception_handler(request: Request, exc: AppException) -> JSONResp
     )
 
 
+async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    """Last-resort handler: log the traceback and return a JSON 500.
+
+    Without this, an unexpected error returns plain text (or drops the
+    connection), and the frontend can't show a useful message.
+    """
+    logger.exception("Unhandled error on %s %s", request.method, request.url.path)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Something went wrong on the server. The error has been logged."},
+    )
+
+
 def register_exception_handlers(app: FastAPI) -> None:
     """Register all custom exception handlers on the FastAPI app instance.
 
@@ -119,3 +135,4 @@ def register_exception_handlers(app: FastAPI) -> None:
         app: The FastAPI application to register handlers on.
     """
     app.add_exception_handler(AppException, app_exception_handler)  # type: ignore[arg-type]
+    app.add_exception_handler(Exception, unhandled_exception_handler)

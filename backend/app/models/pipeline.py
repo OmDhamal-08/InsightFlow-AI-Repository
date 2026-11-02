@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime, timezone
 
 from sqlalchemy import DateTime, ForeignKey, JSON, String, Uuid
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, backref, mapped_column, relationship
 
 from app.database import Base
 
@@ -41,7 +41,9 @@ class PreprocessingPipeline(Base):
 
     # Relationships
     dataset: Mapped["Dataset"] = relationship(
-        "Dataset", backref="preprocessing_pipelines"
+        "Dataset",
+        # Deleting a dataset deletes its pipelines
+        backref=backref("preprocessing_pipelines", cascade="all, delete-orphan", passive_deletes=True),
     )
 
     def __repr__(self) -> str:

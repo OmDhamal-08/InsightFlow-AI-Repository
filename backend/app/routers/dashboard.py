@@ -1,10 +1,9 @@
 """Dashboard API endpoints.
 
 Routes:
-    GET /summary          — Get overview metrics counts (datasets, models, reports, quality)
-    GET /recent-datasets  — Get user's recently uploaded datasets
-    GET /recent-reports   — Get user's recently generated reports
-    GET /notifications    — Get user's notifications
+    GET /summary          — Overview counts (datasets, experiments, trained models, avg quality)
+    GET /recent-datasets  — The user's recently uploaded datasets
+    GET /notifications    — The user's notifications
 """
 
 from fastapi import APIRouter, Depends
@@ -14,7 +13,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
 from app.dependencies import get_current_user
 from app.models.dataset import Dataset
+from app.models.quality import QualityResult
 from app.models.user import User
+from app.repositories.experiment_repository import ExperimentRepository
 
 router = APIRouter()
 
@@ -24,21 +25,26 @@ async def get_summary(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Retrieve summary counts for datasets, models, reports, and data quality.
+    """Retrieve summary counts for datasets, experiments, trained models and average data quality."""
+    stmt = select(func.count()).select_from(Dataset).where(Dataset.user_id == current_user.id)
+    datasets_count = (await db.execute(stmt)).scalar() or 0
 
-    Queries the datasets table for a real count; models/reports return 0
-    until those phases are implemented.
-    """
-    # Real dataset count
-    stmt = select(func.count()).where(Dataset.user_id == current_user.id)
-    result = await db.execute(stmt)
-    datasets_count = result.scalar() or 0
+    experiment_repo = ExperimentRepository(db)
+    models_count = await experiment_repo.count_trained_models(current_user.id)
+    experiments_count = await experiment_repo.count_experiments(current_user.id)
+
+    quality_stmt = (
+        select(func.avg(QualityResult.quality_score))
+        .join(Dataset, QualityResult.dataset_id == Dataset.id)
+        .where(Dataset.user_id == current_user.id)
+    )
+    avg_quality = (await db.execute(quality_stmt)).scalar()
 
     return {
         "datasets_count": datasets_count,
-        "models_count": 0,          # Phase 10
-        "reports_count": 0,          # Phase 16
-        "data_quality_score": None,  # Phase 6
+        "models_count": models_count,
+        "experiments_count": experiments_count,
+        "data_quality_score": round(float(avg_quality), 1) if avg_quality is not None else None,
     }
 
 
@@ -60,23 +66,15 @@ async def get_recent_datasets(
     return [
         {
             "id": str(ds.id),
-            "filename": ds.name,
-            "size_bytes": ds.file_size,
-            "rows_count": ds.row_count,
+            "name": ds.name,
+            "file_size": ds.file_size,
+            "row_count": ds.row_count,
+            "column_count": ds.column_count,
+            "status": ds.status,
             "created_at": ds.created_at.isoformat(),
         }
         for ds in datasets
     ]
-
-
-@router.get("/recent-reports")
-async def get_recent_reports(
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-):
-    """Retrieve a list of the user's recently generated reports."""
-    # Placeholder for Phase 16 (Report Generator)
-    return []
 
 
 @router.get("/notifications")

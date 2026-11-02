@@ -11,7 +11,7 @@ Routes:
 
 import uuid
 
-from fastapi import APIRouter, Depends, File, Form, UploadFile
+from fastapi import APIRouter, Depends, File, Form, Query, UploadFile
 from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -72,7 +72,7 @@ async def get_dataset(
 @router.get("/{dataset_id}/preview", response_model=DatasetPreview)
 async def preview_dataset(
     dataset_id: uuid.UUID,
-    rows: int = 10,
+    rows: int = Query(default=10, ge=1, le=500),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):

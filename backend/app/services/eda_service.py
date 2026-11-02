@@ -96,6 +96,31 @@ class EdaService:
         await self._verify_dataset(dataset_id, user_id)
         return await self.eda_repo.list_by_dataset(dataset_id)
 
+    async def get_bivariate_analysis(
+        self, dataset_id: uuid.UUID, user_id: uuid.UUID, target_column: str
+    ) -> dict:
+        """Compute target-aware bivariate statistical associations for all features vs. a target column.
+
+        Returns statistical test results (Pearson, ANOVA, Chi-Square, Cramér's V)
+        and bivariate chart data for Plotly rendering.
+        """
+        dataset = await self._verify_dataset(dataset_id, user_id)
+        df = self._load_dataframe(dataset)
+
+        if target_column not in df.columns:
+            raise BadRequestException(detail=f"Target column '{target_column}' not found in dataset.")
+
+        # Get column types from profiling
+        try:
+            profile_result = await self.profiling_service.get_profiling(dataset_id, user_id)
+            column_types = profile_result.column_types
+        except NotFoundException:
+            profile_result = await self.profiling_service.run_profiling(dataset_id, user_id)
+            column_types = profile_result.column_types
+
+        logger.info("Computing bivariate analysis for target='%s' on dataset=%s", target_column, dataset_id)
+        return EdaGenerator.generate_bivariate_analysis(df, target_column, column_types)
+
     # ── Helpers ──────────────────────────────────────────────────
 
     async def _verify_dataset(self, dataset_id: uuid.UUID, user_id: uuid.UUID) -> Dataset:
