@@ -4,7 +4,6 @@ Performs datetime splitting, numerical interactions, polynomial additions,
 text metrics extraction, PCA projections, and Mutual Information feature selection.
 """
 
-import numpy as np
 import pandas as pd
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler, LabelEncoder
@@ -44,7 +43,7 @@ class FeatureEngineer:
 
         return df, new_features
 
-    # ── 1. Date Splitting ─────────────────────────────────────────
+    # 1. Date Splitting
     @classmethod
     def _apply_date_features(cls, df: pd.DataFrame, config: dict) -> tuple[pd.DataFrame, list[dict]]:
         col = config.get("column")
@@ -78,7 +77,7 @@ class FeatureEngineer:
 
         return df, new_features
 
-    # ── 2. Interaction Features ──────────────────────────────────
+    # 2. Interaction Features
     @classmethod
     def _apply_interaction_features(cls, df: pd.DataFrame, config: dict) -> tuple[pd.DataFrame, list[dict]]:
         cols = config.get("columns", [])
@@ -111,7 +110,7 @@ class FeatureEngineer:
 
         return df, new_features
 
-    # ── 3. Polynomial Features ───────────────────────────────────
+    # 3. Polynomial Features
     @classmethod
     def _apply_polynomial_features(cls, df: pd.DataFrame, config: dict) -> tuple[pd.DataFrame, list[dict]]:
         cols = config.get("columns", [])
@@ -141,7 +140,7 @@ class FeatureEngineer:
 
         return df, new_features
 
-    # ── 4. Text Length Features ──────────────────────────────────
+    # 4. Text Length Features
     @classmethod
     def _apply_text_features(cls, df: pd.DataFrame, config: dict) -> tuple[pd.DataFrame, list[dict]]:
         col = config.get("column")
@@ -172,7 +171,7 @@ class FeatureEngineer:
 
         return df, new_features
 
-    # ── 5. PCA Projections ───────────────────────────────────────
+    # 5. PCA Projections
     @classmethod
     def _apply_pca_features(cls, df: pd.DataFrame, config: dict) -> tuple[pd.DataFrame, list[dict]]:
         cols = config.get("columns", [])
@@ -209,7 +208,7 @@ class FeatureEngineer:
 
         return df, new_features
 
-    # ── 6. Feature Selection (Mutual Information) ────────────────
+    # 6. Feature Selection (Mutual Information)
     @classmethod
     def _apply_feature_selection(cls, df: pd.DataFrame, config: dict) -> tuple[pd.DataFrame, list[dict]]:
         target_col = config.get("target_column")

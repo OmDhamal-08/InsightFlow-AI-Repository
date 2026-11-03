@@ -6,7 +6,6 @@ and QQ-plots.
 """
 
 import logging
-import os
 import uuid
 from pathlib import Path
 
@@ -121,7 +120,7 @@ class EdaService:
         logger.info("Computing bivariate analysis for target='%s' on dataset=%s", target_column, dataset_id)
         return EdaGenerator.generate_bivariate_analysis(df, target_column, column_types)
 
-    # ── Helpers ──────────────────────────────────────────────────
+    # Helpers
 
     async def _verify_dataset(self, dataset_id: uuid.UUID, user_id: uuid.UUID) -> Dataset:
         """Fetch dataset and verify user ownership."""

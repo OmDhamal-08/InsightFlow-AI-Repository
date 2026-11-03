@@ -1,4 +1,4 @@
-"""AutoML experiment API (Phase 10) and model evaluation API (Phase 11).
+"""AutoML experiment and model evaluation API.
 
 Routes (prefix ``/api/v1/experiments``):
     GET    /recommend?dataset_id=&target_column=   — detect task, suggest algorithms

@@ -721,9 +721,7 @@ function getPlotlyLayout(title, xTitle, yTitle) {
     };
 }
 
-/* ================================================
-   Target-Aware Bivariate Analysis
-   ================================================ */
+// Target-Aware Bivariate Analysis
 
 /**
  * Fetch bivariate statistical associations from the backend and render results.

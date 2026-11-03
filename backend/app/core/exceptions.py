@@ -5,7 +5,6 @@ to HTTP status codes, plus a handler to convert them into JSON responses.
 """
 
 import logging
-from typing import Any
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse

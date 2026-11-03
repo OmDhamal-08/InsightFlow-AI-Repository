@@ -1,4 +1,4 @@
-"""AutoML engine (Phase 10).
+"""AutoML engine.
 
 Pure-Python training engine with no web or database code, so it is easy to
 unit-test and to explain:
@@ -16,7 +16,7 @@ unit-test and to explain:
                                split, save a ``.joblib`` bundle.
 
 Model selection uses the cross-validation score; the test split is only used
-for the final, unbiased report (Phase 11, see ``app.ml.evaluator``).
+for the final, unbiased report (see ``app.ml.evaluator``).
 
 Only scikit-learn is required. XGBoost and LightGBM are used automatically
 when they are installed, but they are optional.
@@ -83,9 +83,7 @@ class AutoMLError(ValueError):
     """Raised for invalid AutoML input (bad target, unsupported algorithm, ...)."""
 
 
-# ══════════════════════════════════════════════════════════════════════
 # Metrics used for model selection
-# ══════════════════════════════════════════════════════════════════════
 
 # metric key -> (sklearn scoring string, human label, higher_is_better)
 CLASSIFICATION_METRICS: dict[str, tuple[str, str]] = {
@@ -121,9 +119,7 @@ def _scoring_for(metric: str, task_type: str) -> str:
     return scoring
 
 
-# ══════════════════════════════════════════════════════════════════════
 # Algorithm registry
-# ══════════════════════════════════════════════════════════════════════
 
 @dataclass(frozen=True)
 class AlgorithmSpec:
@@ -277,9 +273,7 @@ def _build_registry() -> dict[str, AlgorithmSpec]:
 ALGORITHMS: dict[str, AlgorithmSpec] = _build_registry()
 
 
-# ══════════════════════════════════════════════════════════════════════
 # Task detection & recommendations
-# ══════════════════════════════════════════════════════════════════════
 
 def detect_task_type(y: pd.Series) -> str:
     """Infer the ML task from the target column.
@@ -361,9 +355,7 @@ def validate_choices(task_type: str, algorithms: list[str] | None, metric: str |
             raise AutoMLError(f"Algorithm(s) not suitable for {task_label}: {', '.join(unsupported)}")
 
 
-# ══════════════════════════════════════════════════════════════════════
 # Data preparation
-# ══════════════════════════════════════════════════════════════════════
 
 _ID_NAME = re.compile(r"(^|[_\s-])id$|^id([_\s-]|$)|_id$|^(index|row|row_?num(ber)?)$")
 
@@ -545,9 +537,7 @@ def build_pipeline(algorithm: str, task_type: str, numeric: list[str], categoric
     ])
 
 
-# ══════════════════════════════════════════════════════════════════════
 # Training
-# ══════════════════════════════════════════════════════════════════════
 
 @dataclass
 class AutoMLConfig:
@@ -741,9 +731,7 @@ def run_automl(df: pd.DataFrame, config: AutoMLConfig, artifact_dir: str | Path)
     }
 
 
-# ══════════════════════════════════════════════════════════════════════
 # Inference
-# ══════════════════════════════════════════════════════════════════════
 
 def load_model_bundle(path: str | Path) -> dict:
     """Load a saved ``.joblib`` bundle (pipeline + metadata)."""

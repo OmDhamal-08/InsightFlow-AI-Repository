@@ -7,7 +7,6 @@ as a new dataset, and logging the pipeline metadata.
 
 import hashlib
 import logging
-import os
 import uuid
 from pathlib import Path
 
@@ -142,7 +141,7 @@ class PreprocessingService:
             raise NotFoundException(detail="Preprocessing pipeline not found")
         return pipeline
 
-    # ── Helpers ──────────────────────────────────────────────────
+    # Helpers
 
     async def _verify_dataset(self, dataset_id: uuid.UUID, user_id: uuid.UUID) -> Dataset:
         """Fetch dataset and verify user ownership."""

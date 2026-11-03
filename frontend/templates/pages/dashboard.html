@@ -1,14 +1,15 @@
 {% extends "base_dashboard.html" %}
+{% from "components/icons.html" import icon %}
 
 {% block page_title %}Dashboard{% endblock %}
 {% block meta_description %}Your AI BI Platform dashboard — view datasets, trained models and experiments at a glance.{% endblock %}
 
 {% block dashboard_content %}
 <div class="space-y-8">
-    <!-- ====== Welcome Header ====== -->
+    <!-- Welcome Header -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-            <h1 class="text-2xl font-bold text-white">Welcome back, <span id="dashboard-welcome-username" class="gradient-text bg-gradient-to-r from-primary-400 to-purple-400">User</span>! 👋</h1>
+            <h1 class="text-2xl font-bold text-white">Welcome back, <span id="dashboard-welcome-username" class="gradient-text bg-gradient-to-r from-primary-400 to-purple-400">User</span></h1>
             <p class="mt-1 text-sm text-gray-400">Here's what's happening with your data today.</p>
         </div>
         <div class="flex items-center gap-2 text-sm text-gray-500">
@@ -17,7 +18,7 @@
         </div>
     </div>
 
-    <!-- ====== Summary Cards ====== -->
+    <!-- Summary Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         <!-- Datasets Card -->
         <div class="glass rounded-2xl border border-white/[0.06] p-5 group hover:border-primary-500/20 hover:shadow-lg hover:shadow-primary-500/5 transition-all duration-300">
@@ -88,7 +89,7 @@
         </div>
     </div>
 
-    <!-- ====== Quick Actions ====== -->
+    <!-- Quick Actions -->
     <div class="glass rounded-2xl border border-white/[0.06] p-6">
         <h3 class="text-sm font-semibold text-gray-300 mb-4">Quick Actions</h3>
         <div class="flex flex-wrap gap-3">
@@ -97,13 +98,13 @@
                 Upload Dataset
             </a>
             <a href="{{ url_for('experiments_page') }}" class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-gray-200 bg-white/[0.05] border border-white/[0.08] rounded-xl hover:bg-white/[0.1] hover:text-white transition-all duration-300 hover:-translate-y-0.5">
-                <span class="text-base leading-none">🤖</span>
+                {{ icon("cpu") }}
                 Train Models (AutoML)
             </a>
         </div>
     </div>
 
-    <!-- ====== Content Grid ====== -->
+    <!-- Content Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Recent Datasets (2/3 width) -->
         <div class="lg:col-span-2 glass rounded-2xl border border-white/[0.06] overflow-hidden">
@@ -145,7 +146,7 @@
         </div>
     </div>
 
-    <!-- ====== Recent Experiments ====== -->
+    <!-- Recent Experiments -->
     <div class="glass rounded-2xl border border-white/[0.06] overflow-hidden">
         <div class="flex items-center justify-between px-6 py-4 border-b border-white/[0.06]">
             <h3 class="text-sm font-semibold text-gray-300">Recent Experiments</h3>
@@ -153,7 +154,7 @@
         </div>
         <div id="recent-experiments-container" class="p-6">
             <div class="empty-state text-center py-12">
-                <div class="w-16 h-16 mx-auto rounded-2xl bg-white/[0.04] flex items-center justify-center mb-4 text-2xl">🤖</div>
+                <div class="w-16 h-16 mx-auto rounded-2xl bg-white/[0.04] flex items-center justify-center mb-4 text-gray-400">{{ icon("cpu", "w-7 h-7") }}</div>
                 <p class="text-sm text-gray-400 font-medium">No models trained yet</p>
                 <p class="mt-1 text-xs text-gray-500">Upload a dataset, then use Train Models to run your first AutoML experiment.</p>
             </div>

@@ -1,4 +1,4 @@
-"""Regression tests for bugs found during the full-project audit.
+"""Regression tests for bugs found while testing the app end to end.
 
 Each test names the bug it guards against. Most of them used to produce a
 500 error or silently wrong output.
@@ -36,7 +36,7 @@ def _messy_frame(n: int = 120) -> pd.DataFrame:
     return pd.concat([df, df.head(3)], ignore_index=True)
 
 
-# ── Preprocessing engine ─────────────────────────────────────────────
+# Preprocessing engine
 
 def test_label_encoding_text_column_does_not_crash():
     """pandas 3 string columns rejected integer codes written in place."""
@@ -98,7 +98,7 @@ def test_every_quality_recommendation_is_a_real_preprocessing_action():
     assert len(out) > 0
 
 
-# ── Feature engineering ──────────────────────────────────────────────
+# Feature engineering
 
 def test_text_features_treat_missing_as_empty():
     """Missing text was counted as the 3-letter word 'nan'."""
@@ -115,7 +115,7 @@ def test_feature_selection_ignores_id_columns_and_records_target():
     assert all(f["target_column"] == "churn" for f in features)
 
 
-# ── AutoML ───────────────────────────────────────────────────────────
+# AutoML
 
 def test_automl_explains_date_columns():
     data = prepare_data(_messy_frame(), "churn")
@@ -124,7 +124,7 @@ def test_automl_explains_date_columns():
     assert "customer_id" in reasons
 
 
-# ── API flows ────────────────────────────────────────────────────────
+# API flows
 
 async def _setup(client: AsyncClient, name: str, frame: pd.DataFrame | None = None):
     resp = await client.post(
@@ -232,7 +232,7 @@ async def test_unexpected_errors_return_json(client: AsyncClient, monkeypatch):
     assert "detail" in resp.json()
 
 
-# ── Settings: change password (was a fake "demo mode" form) ──────────
+# Settings: change password (was a fake "demo mode" form)
 
 @pytest.mark.asyncio
 async def test_change_password_rotates_sessions(client: AsyncClient):

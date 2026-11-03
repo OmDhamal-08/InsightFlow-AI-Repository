@@ -7,7 +7,6 @@ pipeline that feeds all downstream ML operations.
 
 import hashlib
 import logging
-import os
 import uuid
 from pathlib import Path
 
@@ -34,7 +33,7 @@ class DatasetService:
     def __init__(self, db: AsyncSession) -> None:
         self.repo = DatasetRepository(db)
 
-    # ── Upload ───────────────────────────────────────────────────
+    # Upload
 
     async def upload_dataset(
         self,
@@ -110,7 +109,7 @@ class DatasetService:
         logger.info("Dataset ingested: %s (id=%s, %d rows, %d cols)", filename, dataset.id, row_count or 0, column_count or 0)
         return dataset
 
-    # ── Preview ──────────────────────────────────────────────────
+    # Preview
 
     async def preview_dataset(
         self, dataset_id: uuid.UUID, user_id: uuid.UUID, n_rows: int = 10
@@ -143,13 +142,13 @@ class DatasetService:
             total_rows=ds.row_count or 0,
         )
 
-    # ── List ─────────────────────────────────────────────────────
+    # List
 
     async def list_datasets(self, user_id: uuid.UUID) -> list[Dataset]:
         """Return all datasets for the user."""
         return await self.repo.list_by_user(user_id)
 
-    # ── Detail ───────────────────────────────────────────────────
+    # Detail
 
     async def get_dataset(self, dataset_id: uuid.UUID, user_id: uuid.UUID) -> Dataset:
         """Get a single dataset's metadata."""
@@ -158,7 +157,7 @@ class DatasetService:
             raise NotFoundException(detail="Dataset not found")
         return ds
 
-    # ── Delete ───────────────────────────────────────────────────
+    # Delete
 
     async def delete_dataset(self, dataset_id: uuid.UUID, user_id: uuid.UUID) -> None:
         """Delete a dataset: remove file from disk and record from DB.
@@ -187,7 +186,7 @@ class DatasetService:
         await self.repo.delete_dataset(dataset_id, user_id)
         logger.info("Dataset deleted: %s (id=%s)", ds.name, ds.id)
 
-    # ── Internal helpers ─────────────────────────────────────────
+    # Internal helpers
 
     @staticmethod
     def _parse_metadata(content: bytes, ext: str) -> tuple[int | None, int | None, list[str] | None]:

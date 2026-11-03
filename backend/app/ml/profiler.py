@@ -5,12 +5,12 @@ uniqueness statistics, descriptive stats, and value distributions.
 Converts all data types to JSON-compatible standard Python types.
 """
 
-from datetime import datetime
 
-import numpy as np
 import warnings
 
 import pandas as pd
+
+from app.ml.json_utils import to_json_value
 
 
 class DatasetProfiler:
@@ -63,19 +63,19 @@ class DatasetProfiler:
             if len(clean_series) > 0:
                 if col_type == "numeric":
                     # Numeric statistics
-                    stats["mean"] = cls._to_json_val(clean_series.mean())
-                    stats["median"] = cls._to_json_val(clean_series.median())
-                    stats["std"] = cls._to_json_val(clean_series.std())
-                    stats["min"] = cls._to_json_val(clean_series.min())
-                    stats["max"] = cls._to_json_val(clean_series.max())
-                    stats["q1"] = cls._to_json_val(clean_series.quantile(0.25))
-                    stats["q3"] = cls._to_json_val(clean_series.quantile(0.75))
-                    stats["skewness"] = cls._to_json_val(clean_series.skew())
+                    stats["mean"] = to_json_value(clean_series.mean())
+                    stats["median"] = to_json_value(clean_series.median())
+                    stats["std"] = to_json_value(clean_series.std())
+                    stats["min"] = to_json_value(clean_series.min())
+                    stats["max"] = to_json_value(clean_series.max())
+                    stats["q1"] = to_json_value(clean_series.quantile(0.25))
+                    stats["q3"] = to_json_value(clean_series.quantile(0.75))
+                    stats["skewness"] = to_json_value(clean_series.skew())
                 else:
                     # Non-numeric statistics (categorical, text, boolean, datetime)
                     mode_val = clean_series.mode()
                     if not mode_val.empty:
-                        stats["top_value"] = cls._to_json_val(mode_val.iloc[0])
+                        stats["top_value"] = to_json_value(mode_val.iloc[0])
                         stats["frequency"] = int(clean_series.eq(mode_val.iloc[0]).sum())
                     else:
                         stats["top_value"] = None
@@ -150,19 +150,3 @@ class DatasetProfiler:
 
         return "text"
 
-    @classmethod
-    def _to_json_val(cls, val):
-        """Convert NumPy data types and NaNs to standard JSON serializable values."""
-        if pd.isna(val):
-            return None
-        if isinstance(val, (np.bool_, bool)):
-            return bool(val)
-        if isinstance(val, (np.integer, np.int64, np.int32, np.int16, np.int8)):
-            return int(val)
-        if isinstance(val, (np.floating, np.float64, np.float32)):
-            if np.isnan(val) or np.isinf(val):
-                return None
-            return float(val)
-        if isinstance(val, (pd.Timestamp, datetime)):
-            return val.isoformat()
-        return val

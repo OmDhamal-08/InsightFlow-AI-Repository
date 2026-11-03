@@ -1,1 +1,1 @@
-"""API router package — contains versioned route modules."""
+"""HTTP routers: JSON API modules plus the HTML page routes."""

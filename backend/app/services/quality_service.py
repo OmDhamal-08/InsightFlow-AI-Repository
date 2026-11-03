@@ -6,7 +6,6 @@ computation, and persists the analysis results.
 """
 
 import logging
-import os
 import uuid
 from pathlib import Path
 

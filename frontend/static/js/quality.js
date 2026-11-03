@@ -161,7 +161,7 @@ function renderQualityDashboard(data) {
         if (recs.length === 0) {
             recContainer.innerHTML = `
                 <div class="text-center py-8 text-gray-500 text-xs">
-                    ✨ No data quality issues detected! Your dataset is clean and ready.
+                    No data quality issues detected! Your dataset is clean and ready.
                 </div>
             `;
         } else {
@@ -300,7 +300,7 @@ function renderQualityDashboard(data) {
         if (pairs.length === 0) {
             multiContainer.innerHTML = `
                 <div class="text-center py-8 text-gray-500 text-xs">
-                    ✨ No high multicollinearity issues detected. Features are sufficiently independent.
+                    No high multicollinearity issues detected. Features are sufficiently independent.
                 </div>
             `;
         } else {

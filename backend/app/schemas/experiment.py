@@ -1,4 +1,4 @@
-"""Pydantic schemas for AutoML experiments (Phase 10) and model evaluation (Phase 11)."""
+"""Pydantic schemas for AutoML experiments and model evaluation."""
 
 import uuid
 from datetime import datetime

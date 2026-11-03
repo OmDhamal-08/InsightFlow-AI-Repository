@@ -24,24 +24,22 @@ flowchart LR
     H --> I[Predict via API<br/>or download .joblib]
 ```
 
-| Phase | Module | Highlights |
-|---|---|---|
-| 0 | Planning | SRS, architecture, ER diagram, API design ([docs/PHASE_0_PLANNING.md](docs/PHASE_0_PLANNING.md)) |
-| 1 | Project setup | FastAPI app, async SQLAlchemy, Alembic, Jinja2 + Tailwind UI |
-| 2 | Authentication | JWT access/refresh tokens with rotation and revocation, bcrypt, password reset, change password (signs out other devices) |
-| 3 | Dashboard | Live counts (datasets, experiments, trained models, average quality score), recent datasets and experiments |
-| 4 | Dataset upload | CSV/Excel, size and type validation, SHA-256 duplicate detection, preview |
-| 5 | Profiling | Column type detection, descriptive statistics, missing and unique counts |
-| 6 | Data quality | Missing values, IQR/Z-score outliers, correlation, skew, class imbalance, 0–100 score |
-| 7 | Preprocessing | Mean/median/mode, KNN and MICE imputation, outlier handling, scaling, power transforms, encoding, resampling, before/after preview |
-| 8 | EDA | Distributions, heatmaps, target-aware tests (Pearson, ANOVA, Kruskal-Wallis, χ² + Cramér's V) |
-| 9 | Feature engineering | Date parts, interactions, polynomials, text stats, PCA, mutual-information selection |
-| **10** | **AutoML** | Task auto-detection, algorithm recommendations, sklearn pipelines, k-fold CV, randomized hyperparameter search |
-| **11** | **Model evaluation** | Leaderboard, best-model selection, metrics, confusion matrix, ROC and PR curves, residuals, permutation importance, live prediction, model download |
+| Module | Highlights |
+|---|---|
+| Authentication | JWT access/refresh tokens with rotation and revocation, bcrypt, password reset, change password (signs out other devices) |
+| Dashboard | Live counts (datasets, experiments, trained models, average quality score), recent datasets and experiments |
+| Dataset upload | CSV/Excel, size and type validation, SHA-256 duplicate detection, preview |
+| Profiling | Column type detection, descriptive statistics, missing and unique counts |
+| Data quality | Missing values, IQR/Z-score outliers, correlation, skew, class imbalance, 0–100 score |
+| Preprocessing | Mean/median/mode, KNN and MICE imputation, outlier handling, scaling, power transforms, encoding, resampling, before/after preview |
+| EDA | Distributions, heatmaps, target-aware tests (Pearson, ANOVA, Kruskal-Wallis, χ² + Cramér's V) |
+| Feature engineering | Date parts, interactions, polynomials, text stats, PCA, mutual-information selection |
+| **AutoML** | Task auto-detection, algorithm recommendations, sklearn pipelines, k-fold CV, randomized hyperparameter search |
+| **Model evaluation** | Leaderboard, best-model selection, metrics, confusion matrix, ROC and PR curves, residuals, permutation importance, live prediction, model download |
 
 ---
 
-## AutoML engine (Phases 10–11)
+## AutoML engine
 
 The engine (`backend/app/ml/automl.py`, `backend/app/ml/evaluator.py`) is plain Python with no web or database code, so it is unit-tested on its own.
 
@@ -160,19 +158,19 @@ print(bundle["class_labels"][label_index])   # e.g. "yes"
 auto_ml_pipline/
 ├── backend/
 │   ├── app/
-│   │   ├── main.py            # FastAPI app, routers, page routes
+│   │   ├── main.py            # creates the app, registers routers
 │   │   ├── config.py          # Pydantic settings (env-driven)
 │   │   ├── database.py        # Async engine/session, SQLite FK enforcement
 │   │   ├── core/              # JWT & bcrypt, exceptions, logging
-│   │   ├── routers/           # HTTP endpoints (auth, datasets, …, experiments)
+│   │   ├── routers/           # API endpoints + pages.py (HTML page routes)
 │   │   ├── services/          # Business logic
 │   │   ├── repositories/      # Database access
 │   │   ├── models/            # SQLAlchemy ORM models
 │   │   ├── schemas/           # Pydantic request/response models
 │   │   ├── ml/                # profiler, quality, preprocessor, EDA, features, automl, evaluator
-│   │   └── utils/
+│   │   └── utils/             # reading CSV/Excel into pandas
 │   ├── alembic/               # 9 migrations
-│   ├── tests/                 # 98 tests (API, ML engines, audit regressions)
+│   ├── tests/                 # 98 tests (API, ML engines, bug regressions)
 │   ├── requirements.txt       # runtime deps
 │   └── requirements-dev.txt   # + pytest, httpx
 ├── frontend/
@@ -180,7 +178,7 @@ auto_ml_pipline/
 │   └── static/js/             # one script per page + shared utils
 ├── storage/                   # uploads/ and models/ (git-ignored)
 ├── docker/ · docker-compose.yml · .github/workflows/ci.yml
-└── docs/                      # planning, dev log, interview guide
+└── docs/PROJECT_GUIDE.md      # full design + interview guide
 ```
 
 ---
@@ -223,9 +221,7 @@ All settings come from `backend/.env` (see `backend/.env.example`):
 
 ## Documentation
 
-- [docs/INTERVIEW_GUIDE.md](docs/INTERVIEW_GUIDE.md): how to pitch and explain this project, resume bullets, likely interview questions
-- [docs/DEVELOPMENT_LOG.md](docs/DEVELOPMENT_LOG.md): what changed and why
-- [docs/PHASE_0_PLANNING.md](docs/PHASE_0_PLANNING.md): original requirements and system design
+[docs/PROJECT_GUIDE.md](docs/PROJECT_GUIDE.md) covers everything in one place: technology choices and alternatives, architecture and request flow, the ER diagram, how every module works, security, testing, problems solved along the way, limitations and the scaling plan.
 
 ## Roadmap (not implemented)
 

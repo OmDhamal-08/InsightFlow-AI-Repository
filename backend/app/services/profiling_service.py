@@ -6,7 +6,6 @@ and updating the dataset status to 'profiled'.
 """
 
 import logging
-import os
 import uuid
 from pathlib import Path
 

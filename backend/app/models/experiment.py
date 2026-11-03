@@ -1,4 +1,4 @@
-"""SQLAlchemy ORM models for AutoML experiments (Phase 10) and trained models (Phase 11)."""
+"""SQLAlchemy ORM models for AutoML experiments and their trained models."""
 
 import uuid
 from datetime import datetime, timezone

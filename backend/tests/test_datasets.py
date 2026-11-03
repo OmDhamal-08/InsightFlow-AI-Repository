@@ -1,4 +1,4 @@
-"""Tests for the Dataset ingestion pipeline (Phase 4).
+"""Tests for the dataset upload and management.
 
 Covers:
     - CSV upload (metadata extraction: row count, column count, column names)
@@ -48,7 +48,7 @@ async def _upload_csv(client: AsyncClient, token: str, csv: bytes | None = None,
     )
 
 
-# ── Upload Tests ────────────────────────────────────────────────
+# Upload Tests
 
 @pytest.mark.asyncio
 async def test_upload_csv_success(client: AsyncClient):
@@ -108,7 +108,7 @@ async def test_upload_empty_file(client: AsyncClient):
     assert resp.status_code == 400
 
 
-# ── List Tests ──────────────────────────────────────────────────
+# List Tests
 
 @pytest.mark.asyncio
 async def test_list_datasets(client: AsyncClient):
@@ -131,7 +131,7 @@ async def test_list_datasets(client: AsyncClient):
     assert "file_b.csv" in names
 
 
-# ── Preview Tests ───────────────────────────────────────────────
+# Preview Tests
 
 @pytest.mark.asyncio
 async def test_preview_dataset(client: AsyncClient):
@@ -151,7 +151,7 @@ async def test_preview_dataset(client: AsyncClient):
     assert data["total_rows"] == 10
 
 
-# ── Delete Tests ────────────────────────────────────────────────
+# Delete Tests
 
 @pytest.mark.asyncio
 async def test_delete_dataset(client: AsyncClient):

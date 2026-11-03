@@ -10,9 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-/* ================================================
-   Load Dashboard Data
-   ================================================ */
+// Load Dashboard Data
 async function loadDashboardData() {
     console.log('Dashboard: loading data...');
 
@@ -50,9 +48,7 @@ async function loadDashboardData() {
     }
 }
 
-/* ================================================
-   Update Summary Cards
-   ================================================ */
+// Update Summary Cards
 function updateSummaryCards(stats) {
     const dsCount = document.getElementById('dashboard-datasets-count');
     const mdCount = document.getElementById('dashboard-models-count');
@@ -69,9 +65,7 @@ function updateSummaryCards(stats) {
     }
 }
 
-/* ================================================
-   Render Recent Datasets
-   ================================================ */
+// Render Recent Datasets
 function renderRecentDatasets(datasets) {
     const container = document.getElementById('recent-datasets-container');
     if (!container) return;
@@ -81,7 +75,6 @@ function renderRecentDatasets(datasets) {
         return;
     }
 
-    // Build table of datasets (Will be implemented in Phase 4 when uploading actually saves items)
     let html = `
         <div class="overflow-x-auto">
             <table class="w-full text-left text-sm text-gray-300">
@@ -116,9 +109,7 @@ function renderRecentDatasets(datasets) {
     container.innerHTML = html;
 }
 
-/* ================================================
-   Render Recent Reports
-   ================================================ */
+// Render Recent Reports
 function renderRecentExperiments(experiments) {
     const container = document.getElementById('recent-experiments-container');
     if (!container || !experiments || experiments.length === 0) return;  // keep empty state
@@ -150,9 +141,7 @@ function renderRecentExperiments(experiments) {
         </div>`;
 }
 
-/* ================================================
-   Render Notifications
-   ================================================ */
+// Render Notifications
 function renderNotifications(notifications) {
     const container = document.getElementById('notifications-container');
     const badge = document.getElementById('notifications-count-badge');

@@ -13,6 +13,8 @@ from sklearn.experimental import enable_iterative_imputer  # noqa: F401  (activa
 from sklearn.impute import IterativeImputer, KNNImputer
 from sklearn.preprocessing import KBinsDiscretizer, LabelEncoder, MinMaxScaler, PowerTransformer, RobustScaler, StandardScaler
 
+from app.ml.json_utils import to_json_value
+
 logger = logging.getLogger(__name__)
 
 # Rows used to fit KNN / MICE imputers (keeps imputation fast on large files).
@@ -53,7 +55,7 @@ class DatasetPreprocessor:
         # Calculate summary statistics before
         before_summary = cls._compute_summary_stats(df_before)
         before_rows_raw = df_before.head(5).to_dict(orient="records")
-        before_rows = [{k: cls._to_python_type(v) for k, v in row.items()} for row in before_rows_raw]
+        before_rows = [{k: to_json_value(v) for k, v in row.items()} for row in before_rows_raw]
 
         # Apply transformations
         df_after, _ = cls.apply(df.copy(), steps)
@@ -61,7 +63,7 @@ class DatasetPreprocessor:
         # Calculate summary statistics after
         after_summary = cls._compute_summary_stats(df_after)
         after_rows_raw = df_after.head(5).to_dict(orient="records")
-        after_rows = [{k: cls._to_python_type(v) for k, v in row.items()} for row in after_rows_raw]
+        after_rows = [{k: to_json_value(v) for k, v in row.items()} for row in after_rows_raw]
 
         return {
             "before": {
@@ -138,7 +140,7 @@ class DatasetPreprocessor:
         step_config = {}
         series = df[col]
 
-        # ── 1. Imputations ──────────────────────────────────────────
+        # 1. Imputations
         if action == "impute_cca":
             df = df.dropna(subset=[col]).reset_index(drop=True)
             step_config["dropped_nulls"] = True
@@ -155,7 +157,7 @@ class DatasetPreprocessor:
 
         elif action == "impute_mode":
             mode_series = series.mode()
-            mode_val = cls._to_python_type(mode_series.iloc[0]) if not mode_series.empty else "missing"
+            mode_val = to_json_value(mode_series.iloc[0]) if not mode_series.empty else "missing"
             df[col] = series.fillna(mode_val)
             step_config["fill_value"] = mode_val
 
@@ -210,7 +212,7 @@ class DatasetPreprocessor:
                 step_config["imputed_count"] = int(missing.sum())
                 step_config["predictor_columns"] = [c for c in numeric_cols if c != col]
 
-        # ── 2. Outlier Handlings ────────────────────────────────────
+        # 2. Outlier Handlings
         elif action == "outliers_cap":
             clean = series.dropna()
             if not clean.empty:
@@ -268,7 +270,7 @@ class DatasetPreprocessor:
                 df[col] = series.apply(lambda x: np.nan if (x < lower or x > upper) else x)
                 step_config["set_nan_count"] = int(((series < lower) | (series > upper)).sum())
 
-        # ── 3. Discretizations ──────────────────────────────────────
+        # 3. Discretizations
         elif action == "discretize_equal_width":
             n_bins = int(params.get("n_bins", 5))
             df[col] = pd.cut(df[col], bins=n_bins, labels=False)
@@ -290,13 +292,13 @@ class DatasetPreprocessor:
                 df[col] = result
                 step_config["n_bins"] = n_bins
 
-        # ── 4. Binarization ─────────────────────────────────────────
+        # 4. Binarization
         elif action == "binarize":
             threshold = float(params.get("threshold", 0.0))
             df[col] = (df[col] > threshold).astype(int)
             step_config["threshold"] = threshold
 
-        # ── 5. Datetime handling ────────────────────────────────────
+        # 5. Datetime handling
         elif action == "handle_datetime":
             try:
                 dt_series = pd.to_datetime(df[col], errors="coerce")
@@ -320,7 +322,7 @@ class DatasetPreprocessor:
             except Exception as e:
                 logger.error("Failed to parse datetime features for %s: %s", col, e)
 
-        # ── 6. Numerical Scalings ───────────────────────────────────
+        # 6. Numerical Scalings
         elif action == "scale_standard":
             scaler = StandardScaler()
             reshaped = df[[col]].fillna(0.0).values
@@ -342,7 +344,7 @@ class DatasetPreprocessor:
             step_config["center"] = float(scaler.center_[0])
             step_config["scale"] = float(scaler.scale_[0])
 
-        # ── 7. Skewness Transformations ──────────────────────────────
+        # 7. Skewness Transformations
         elif action == "apply_log_transform":
             # y = log(x + 1)
             # Clip negative values to zero to prevent NaN issues
@@ -382,7 +384,7 @@ class DatasetPreprocessor:
             df[col] = pt.fit_transform(df[[col]].values).ravel()
             step_config["lambdas"] = float(pt.lambdas_[0])
 
-        # ── 8. Encodings ────────────────────────────────────────────
+        # 8. Encodings
         elif action == "encode_onehot":
             # For 1D preview, we can apply pd.get_dummies
             # We prefix the column name
@@ -398,12 +400,12 @@ class DatasetPreprocessor:
             df[col] = codes
             step_config["classes"] = [str(c) for c in le.classes_]
 
-        # ── 9. Feature Selection ────────────────────────────────────
+        # 9. Feature Selection
         elif action in ("drop_column", "drop_correlated_column"):
             df = df.drop(columns=[col])
             step_config["dropped"] = True
 
-        # ── 10. Class Imbalance Resampling ──────────────────────────
+        # 10. Class Imbalance Resampling
         elif action == "resample_oversample":
             # Random over-sampling: duplicate minority class rows to match majority count
             original_shape = list(df.shape)
@@ -483,13 +485,3 @@ class DatasetPreprocessor:
                 }
         return summary
 
-    @classmethod
-    def _to_python_type(cls, val):
-        """Helper to sanitize values for database."""
-        if pd.isna(val):
-            return None
-        if isinstance(val, (np.integer, np.int64, np.int32, np.int16, np.int8)):
-            return int(val)
-        if isinstance(val, (np.floating, np.float64, np.float32)):
-            return float(val)
-        return val

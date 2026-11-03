@@ -1,4 +1,4 @@
-"""Unit tests for the AutoML engine (Phase 10) and evaluator (Phase 11).
+"""Unit tests for the AutoML engine and evaluator.
 
 These call ``app.ml`` directly — no HTTP or database — so they are fast and
 document how the engine behaves.
@@ -30,7 +30,7 @@ def _frame(n: int = 160, seed: int = 0) -> pd.DataFrame:
     return df
 
 
-# ── Task detection ───────────────────────────────────────────────────
+# Task detection
 
 @pytest.mark.parametrize(
     "values, expected",
@@ -51,7 +51,7 @@ def test_detect_task_type_rejects_single_value():
         detect_task_type(pd.Series([1, 1, 1, 1]))
 
 
-# ── Data preparation ─────────────────────────────────────────────────
+# Data preparation
 
 def test_prepare_data_drops_unusable_columns_with_reasons():
     data = prepare_data(_frame(), "churn")
@@ -73,7 +73,7 @@ def test_recommendations_skip_slow_models_on_large_data():
     assert large["random_forest"] is True and large["logistic_regression"] is True
 
 
-# ── End-to-end runs ──────────────────────────────────────────────────
+# End-to-end runs
 
 def test_binary_classification_run(tmp_path):
     df = _frame().drop(columns=["segment", "spend"])

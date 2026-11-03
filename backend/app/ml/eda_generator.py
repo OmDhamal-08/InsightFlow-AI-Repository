@@ -5,35 +5,15 @@ missing values, distributions) and custom interactive plots (normality tests, bo
 QQ-plots, and scatter plots with linear regression lines).
 """
 
-import math
 import numpy as np
 import pandas as pd
 import scipy.stats as stats
 
+from app.ml.json_utils import to_json_value
+
 
 class EdaGenerator:
     """Calculates statistics coordinates and AI insights for dataset visualization."""
-
-    @classmethod
-    def _to_json_val(cls, val):
-        """Convert numpy/python numeric types to JSON-serializable numbers."""
-        if val is None:
-            return None
-        try:
-            if pd.isna(val):
-                return None
-        except Exception:
-            pass
-
-        if isinstance(val, (int, np.integer)):
-            return int(val)
-
-        if isinstance(val, (float, np.floating)):
-            if math.isnan(val) or math.isinf(val):
-                return None
-            return float(val)
-
-        return val
 
     @classmethod
     def generate_summary(cls, df: pd.DataFrame, column_types: dict[str, str]) -> list[dict]:
@@ -50,7 +30,7 @@ class EdaGenerator:
         numeric_cols = [c for c, t in column_types.items() if t == "numeric"]
         categorical_cols = [c for c, t in column_types.items() if t in ("categorical", "boolean")]
 
-        # ── 1. Correlation Heatmap ──────────────────────────────────
+        # 1. Correlation Heatmap
         if len(numeric_cols) > 1:
             clean_df = df[numeric_cols].select_dtypes(include=[np.number]).dropna(how="all")
             if not clean_df.empty and len(clean_df.columns) > 1:
@@ -66,7 +46,7 @@ class EdaGenerator:
                     x_labels = list(corr_matrix.columns)
                     y_labels = list(corr_matrix.index)
                     matrix_values = [
-                        [cls._to_json_val(corr_matrix.loc[y, x]) for x in x_labels]
+                        [to_json_value(corr_matrix.loc[y, x]) for x in x_labels]
                         for y in y_labels
                     ]
 
@@ -96,7 +76,7 @@ class EdaGenerator:
                         "insight": insight,
                     })
 
-        # ── 2. Missing Values Bar Chart ─────────────────────────────
+        # 2. Missing Values Bar Chart
         null_counts = df.isna().sum()
         cols_with_nulls = [col for col in df.columns if null_counts[col] > 0]
         
@@ -119,7 +99,7 @@ class EdaGenerator:
                 "insight": insight,
             })
 
-        # ── 3. Categorical Counts (Target candidate) ────────────────
+        # 3. Categorical Counts (Target candidate)
         if categorical_cols:
             top_cat = categorical_cols[0]
             clean_series = df[top_cat].dropna()
@@ -145,7 +125,7 @@ class EdaGenerator:
                     "insight": insight,
                 })
 
-        # ── 4. Feature Skewness Overview ─────────────────────────────
+        # 4. Feature Skewness Overview
         if numeric_cols:
             skews = []
             for col in numeric_cols:
@@ -161,7 +141,7 @@ class EdaGenerator:
                 highly_skewed = [c for c, s in skews if abs(s) > 1.0]
                 insight = "Feature Skewness: Displays the skewness coefficient of numeric columns."
                 if highly_skewed:
-                    insight += f" Highly skewed features (>1.0 or <-1.0) found: {', '.join(highly_skewed[:3])}. We suggest log or Yeo-Johnson transforms (Phase 7)."
+                    insight += f" Highly skewed features (>1.0 or <-1.0) found: {', '.join(highly_skewed[:3])}. Consider a log or Yeo-Johnson transform on the Preprocessing page."
                 else:
                     insight += " All numeric columns show low or moderate skewness (skew within [-1.0, 1.0])."
 
@@ -177,7 +157,7 @@ class EdaGenerator:
                     "insight": insight,
                 })
 
-        # ── 5. Outlier Densities Overview ─────────────────────────────
+        # 5. Outlier Densities Overview
         if numeric_cols:
             outlier_pcts = []
             for col in numeric_cols:
@@ -216,7 +196,7 @@ class EdaGenerator:
                     "insight": insight,
                 })
 
-        # ── 6. Categorical Cardinality Overview ───────────────────────
+        # 6. Categorical Cardinality Overview
         if categorical_cols:
             cardinalities = []
             for col in categorical_cols:
@@ -268,7 +248,7 @@ class EdaGenerator:
         if chart_type in ("distribution", "boxplot", "qq_plot", "scatter") and not is_numeric:
             return {"error": f"Column '{col}' is categorical. Please select a Category Distribution or Category Share chart."}
 
-        # ── A. Normality & Distribution ─────────────────────────────
+        # A. Normality & Distribution
         if chart_type == "distribution":
             # 1. Compute histogram bins (Freedman-Diaconis rule or auto)
             counts, bin_edges = np.histogram(series, bins="auto")
@@ -310,7 +290,7 @@ class EdaGenerator:
             if is_normal:
                 insight += f"The column passes the normality test (p-value = {p_value:.4f} > 0.05), indicating it is normally distributed. Algorithms requiring Gaussian inputs (e.g. Linear Regression, LDA) will perform well without transforms."
             else:
-                insight += f"The column fails the normality test (p-value = {p_value:.4f} <= 0.05), indicating a non-normal/skewed distribution. Applying log, power, or Yeo-Johnson transforms (Phase 7) is recommended before model training."
+                insight += f"The column fails the normality test (p-value = {p_value:.4f} <= 0.05), indicating a non-normal/skewed distribution. A log or Yeo-Johnson transform (Preprocessing page) is recommended before model training."
 
             return {
                 "chart_type": "distribution",
@@ -331,7 +311,7 @@ class EdaGenerator:
                 "insight": insight,
             }
 
-        # ── B. Boxplot & Outliers ───────────────────────────────────
+        # B. Boxplot & Outliers
         elif chart_type == "boxplot":
             q1 = float(series.quantile(0.25))
             q3 = float(series.quantile(0.75))
@@ -378,7 +358,7 @@ class EdaGenerator:
                 "insight": insight,
             }
 
-        # ── C. Q-Q Plot (Quantile-Quantile) ─────────────────────────
+        # C. Q-Q Plot (Quantile-Quantile)
         elif chart_type == "qq_plot":
             # Compute theoretical quantiles vs sample quantiles
             clean_series = series.values
@@ -419,7 +399,7 @@ class EdaGenerator:
                 "insight": insight,
             }
 
-        # ── D. Bivariate Scatter Plot with Linear Trend ──────────────
+        # D. Bivariate Scatter Plot with Linear Trend
         elif chart_type == "scatter":
             col2 = columns[1] if len(columns) > 1 else None
             if not col2 or col2 not in df.columns:
@@ -542,19 +522,6 @@ class EdaGenerator:
         return {"error": "Unsupported chart type"}
 
     @classmethod
-    def _to_json_val(cls, val):
-        """Convert numpy numeric types to serializable python numbers."""
-        if pd.isna(val):
-            return None
-        if isinstance(val, (np.integer, np.int64, np.int32, np.int16, np.int8)):
-            return int(val)
-        if isinstance(val, (np.floating, np.float64, np.float32)):
-            if np.isnan(val) or np.isinf(val):
-                return None
-            return float(val)
-        return val
-
-    @classmethod
     def generate_bivariate_analysis(cls, df: pd.DataFrame, target_column: str, column_types: dict[str, str]) -> dict:
         """Generate target-aware bivariate statistical analysis and chart data.
 
@@ -573,7 +540,7 @@ class EdaGenerator:
             (per-feature test results), and ``bivariate_charts`` (Plotly-ready
             chart data dicts).
         """
-        # ── Edge case: empty or missing target ──────────────────────
+        # Edge case: empty or missing target
         if df.empty or target_column not in df.columns:
             return {
                 "target_column": target_column,
@@ -592,7 +559,7 @@ class EdaGenerator:
         associations: list[dict] = []
         bivariate_charts: list[dict] = []
 
-        # ── Helper: classify effect-size strength ───────────────────
+        # Helper: classify effect-size strength
         def _strength(effect: float | None) -> str:
             if effect is None:
                 return "none"
@@ -605,7 +572,7 @@ class EdaGenerator:
                 return "weak"
             return "none"
 
-        # ── CASE 1: Numeric target + Numeric feature ────────────────
+        # CASE 1: Numeric target + Numeric feature
         if target_type == "numeric":
             # Pre-compute absolute Pearson correlations to rank features
             corr_scores: list[tuple[str, float]] = []
@@ -647,19 +614,19 @@ class EdaGenerator:
                 if pearson_r is not None and spearman_r is not None:
                     if abs(spearman_r) > abs(pearson_r):
                         primary_name = "Spearman Correlation"
-                        primary_stat = cls._to_json_val(spearman_r)
-                        primary_p = cls._to_json_val(spearman_p)
-                        effect = cls._to_json_val(spearman_r)
+                        primary_stat = to_json_value(spearman_r)
+                        primary_p = to_json_value(spearman_p)
+                        effect = to_json_value(spearman_r)
                     else:
                         primary_name = "Pearson Correlation"
-                        primary_stat = cls._to_json_val(pearson_r)
-                        primary_p = cls._to_json_val(pearson_p)
-                        effect = cls._to_json_val(pearson_r)
+                        primary_stat = to_json_value(pearson_r)
+                        primary_p = to_json_value(pearson_p)
+                        effect = to_json_value(pearson_r)
                 else:
                     primary_name = "Pearson Correlation"
-                    primary_stat = cls._to_json_val(pearson_r)
-                    primary_p = cls._to_json_val(pearson_p)
-                    effect = cls._to_json_val(pearson_r)
+                    primary_stat = to_json_value(pearson_r)
+                    primary_p = to_json_value(pearson_p)
+                    effect = to_json_value(pearson_r)
 
                 s = _strength(effect)
                 direction = "positive" if (effect or 0) > 0 else "negative"
@@ -705,14 +672,14 @@ class EdaGenerator:
                             "y_label": target_column,
                         },
                         "chart_data": {
-                            "points": [{"x": cls._to_json_val(xv), "y": cls._to_json_val(yv)} for xv, yv in zip(x, y)],
+                            "points": [{"x": to_json_value(xv), "y": to_json_value(yv)} for xv, yv in zip(x, y)],
                             "regression": {"slope": slope, "intercept": intercept, "r_squared": r_sq},
                         },
                         "feature_column": col,
                         "insight": f"Linear trend: Y = {slope:.3f}X + {intercept:.2f} (R² = {r_sq:.3f}).",
                     })
 
-        # ── CASE 2: Numeric target + Categorical feature ────────────
+        # CASE 2: Numeric target + Categorical feature
         if target_type == "numeric":
             for col in categorical_features:
                 n_unique = df[col].nunique()
@@ -780,9 +747,9 @@ class EdaGenerator:
                     "column": col,
                     "column_type": column_types[col],
                     "test_name": "ANOVA F-test",
-                    "statistic": cls._to_json_val(f_stat),
-                    "p_value": cls._to_json_val(p_val),
-                    "effect_size": cls._to_json_val(eta_sq),
+                    "statistic": to_json_value(f_stat),
+                    "p_value": to_json_value(p_val),
+                    "effect_size": to_json_value(eta_sq),
                     "strength": s,
                     "insight": insight,
                 })
@@ -794,11 +761,11 @@ class EdaGenerator:
                     if vals.empty:
                         continue
                     box_data[str(cat_val)] = {
-                        "min": cls._to_json_val(vals.min()),
-                        "q1": cls._to_json_val(vals.quantile(0.25)),
-                        "median": cls._to_json_val(vals.median()),
-                        "q3": cls._to_json_val(vals.quantile(0.75)),
-                        "max": cls._to_json_val(vals.max()),
+                        "min": to_json_value(vals.min()),
+                        "q1": to_json_value(vals.quantile(0.25)),
+                        "median": to_json_value(vals.median()),
+                        "q3": to_json_value(vals.quantile(0.75)),
+                        "max": to_json_value(vals.max()),
                     }
 
                 bivariate_charts.append({
@@ -813,7 +780,7 @@ class EdaGenerator:
                     "insight": f"Box plots of '{target_column}' grouped by '{col}' categories.",
                 })
 
-        # ── CASE 3: Categorical target + Numeric feature ────────────
+        # CASE 3: Categorical target + Numeric feature
         if target_type == "categorical":
             # Rank by Kruskal-Wallis H statistic to pick top 6
             kw_scores: list[tuple[str, float]] = []
@@ -880,9 +847,9 @@ class EdaGenerator:
                     "column": col,
                     "column_type": "numeric",
                     "test_name": "Kruskal-Wallis H-test",
-                    "statistic": cls._to_json_val(h_stat),
-                    "p_value": cls._to_json_val(p_val),
-                    "effect_size": cls._to_json_val(eps_sq),
+                    "statistic": to_json_value(h_stat),
+                    "p_value": to_json_value(p_val),
+                    "effect_size": to_json_value(eps_sq),
                     "strength": s,
                     "insight": insight,
                 })
@@ -895,11 +862,11 @@ class EdaGenerator:
                         if vals.empty:
                             continue
                         box_data[str(cls_val)] = {
-                            "min": cls._to_json_val(vals.min()),
-                            "q1": cls._to_json_val(vals.quantile(0.25)),
-                            "median": cls._to_json_val(vals.median()),
-                            "q3": cls._to_json_val(vals.quantile(0.75)),
-                            "max": cls._to_json_val(vals.max()),
+                            "min": to_json_value(vals.min()),
+                            "q1": to_json_value(vals.quantile(0.25)),
+                            "median": to_json_value(vals.median()),
+                            "q3": to_json_value(vals.quantile(0.75)),
+                            "max": to_json_value(vals.max()),
                         }
 
                     bivariate_charts.append({
@@ -914,7 +881,7 @@ class EdaGenerator:
                         "insight": f"Distribution of '{col}' across '{target_column}' classes.",
                     })
 
-        # ── CASE 4: Categorical target + Categorical feature ────────
+        # CASE 4: Categorical target + Categorical feature
         if target_type == "categorical":
             for col in categorical_features:
                 n_unique = df[col].nunique()
@@ -978,9 +945,9 @@ class EdaGenerator:
                     "column": col,
                     "column_type": column_types[col],
                     "test_name": "Chi-Square / Cramér's V",
-                    "statistic": cls._to_json_val(chi2),
-                    "p_value": cls._to_json_val(p_val),
-                    "effect_size": cls._to_json_val(cramers_v),
+                    "statistic": to_json_value(chi2),
+                    "p_value": to_json_value(p_val),
+                    "effect_size": to_json_value(cramers_v),
                     "strength": s,
                     "insight": insight,
                 })

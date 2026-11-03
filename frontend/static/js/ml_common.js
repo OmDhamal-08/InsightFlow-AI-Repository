@@ -1,5 +1,5 @@
 /**
- * AI BI Platform — shared helpers for the AutoML (Phase 10) and evaluation (Phase 11) pages.
+ * AI BI Platform — shared helpers for the AutoML and evaluation pages.
  */
 
 const TASK_LABELS = {

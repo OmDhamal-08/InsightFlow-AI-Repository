@@ -1,5 +1,5 @@
 /**
- * AI BI Platform — Experiment leaderboard & model evaluation page (Phase 11).
+ * AI BI Platform — Experiment leaderboard & model evaluation page.
  */
 
 let currentExperiment = null;
@@ -54,7 +54,7 @@ function showQualityHint(exp) {
     }
     if (!hint) return;
     const el = document.getElementById('exp-dropped');
-    el.insertAdjacentHTML('beforebegin', `<div class="p-3 rounded-xl bg-sky-500/[0.07] border border-sky-500/20 text-xs text-sky-200">💡 ${escapeHtml(hint)}</div>`);
+    el.insertAdjacentHTML('beforebegin', `<div class="p-3 rounded-xl bg-sky-500/[0.07] border border-sky-500/20 text-xs text-sky-200">${escapeHtml(hint)}</div>`);
 }
 
 function showError(message) {

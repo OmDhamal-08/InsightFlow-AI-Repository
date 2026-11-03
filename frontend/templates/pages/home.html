@@ -1,15 +1,14 @@
 {% extends "base.html" %}
+{% from "components/icons.html" import icon %}
 
 {% block title %}AutoML BI Platform — From raw data to trained models{% endblock %}
 {% block meta_description %}Upload a CSV or Excel file and get profiling, a data quality score, cleaning, EDA, feature engineering and automatically trained, evaluated ML models — no code required.{% endblock %}
 
 {% block body %}
-<!-- ============================================ -->
 <!--  LANDING PAGE — PUBLIC                       -->
-<!-- ============================================ -->
 <div class="relative min-h-screen overflow-hidden">
 
-    <!-- ====== Animated Background Shapes ====== -->
+    <!-- Animated Background Shapes -->
     <div class="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
         <!-- Gradient Orbs -->
         <div class="absolute -top-40 -right-40 w-[600px] h-[600px] rounded-full bg-primary-500/[0.07] blur-[120px] animate-float"></div>
@@ -26,7 +25,7 @@
         <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAwIDEwIEwgNDAgMTAgTSAxMCAwIEwgMTAgNDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjAyKSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-60"></div>
     </div>
 
-    <!-- ====== Navigation ====== -->
+    <!-- Navigation -->
     <nav class="relative z-20 px-6 py-4">
         <div class="max-w-7xl mx-auto flex items-center justify-between">
             <!-- Logo -->
@@ -56,7 +55,7 @@
         </div>
     </nav>
 
-    <!-- ====== Hero Section ====== -->
+    <!-- Hero Section -->
     <section class="relative z-10 px-6 pt-16 pb-24 md:pt-24 md:pb-32">
         <div class="max-w-5xl mx-auto text-center">
             <!-- Badge -->
@@ -96,18 +95,18 @@
                         <p class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-5">The pipeline</p>
                         <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 text-left">
                             {% set pipeline = [
-                                ('📁', 'Upload', 'CSV / Excel, duplicate check'),
-                                ('🔬', 'Profile', 'Types & statistics'),
-                                ('🛡️', 'Quality', '0–100 score + fixes'),
-                                ('🧹', 'Clean', 'Impute, scale, encode'),
-                                ('📈', 'EDA', 'Charts & stat tests'),
-                                ('⚡', 'Features', 'Dates, PCA, selection'),
-                                ('🤖', 'AutoML', 'CV + tuning, 11 models'),
-                                ('🎯', 'Evaluate', 'ROC, confusion, API'),
+                                ('upload', 'Upload', 'CSV / Excel, duplicate check'),
+                                ('search', 'Profile', 'Types & statistics'),
+                                ('shield', 'Quality', '0–100 score + fixes'),
+                                ('broom', 'Clean', 'Impute, scale, encode'),
+                                ('trend', 'EDA', 'Charts & stat tests'),
+                                ('layers', 'Features', 'Dates, PCA, selection'),
+                                ('cpu', 'AutoML', 'CV + tuning, 11 models'),
+                                ('target', 'Evaluate', 'ROC, confusion, API'),
                             ] %}
-                            {% for icon, name, desc in pipeline %}
+                            {% for icon_name, name, desc in pipeline %}
                             <div class="rounded-xl bg-white/[0.03] border border-white/[0.06] p-3">
-                                <div class="text-lg">{{ icon }}</div>
+                                <div class="text-primary-400">{{ icon(icon_name, "w-5 h-5") }}</div>
                                 <p class="mt-1 text-xs font-semibold text-white">{{ loop.index }}. {{ name }}</p>
                                 <p class="text-[10px] text-gray-500 leading-snug">{{ desc }}</p>
                             </div>
@@ -121,7 +120,7 @@
         </div>
     </section>
 
-    <!-- ====== Features Section ====== -->
+    <!-- Features Section -->
     <section id="features" class="relative z-10 px-6 py-20 md:py-28">
         <div class="max-w-7xl mx-auto">
             <!-- Section Header -->
@@ -134,18 +133,18 @@
             <!-- Feature Cards Grid -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                 {% set features = [
-                    {'icon': '🔬', 'color': 'from-blue-500 to-blue-600', 'shadow': 'shadow-blue-500/20', 'title': 'Automatic Profiling', 'desc': 'Detects numeric, categorical, boolean, datetime and text columns and computes descriptive statistics, missing values and duplicates.'},
-                    {'icon': '🛡️', 'color': 'from-amber-500 to-orange-600', 'shadow': 'shadow-amber-500/20', 'title': 'Data Quality Score', 'desc': 'Scores the dataset 0–100 from missing values, outliers, skew, correlation and class imbalance, with a recommended fix for each issue.'},
-                    {'icon': '🧹', 'color': 'from-purple-500 to-purple-600', 'shadow': 'shadow-purple-500/20', 'title': 'Smart Preprocessing', 'desc': 'KNN/MICE imputation, outlier capping, scaling, power transforms, encoding and resampling — previewed before/after, then saved as a new dataset.'},
-                    {'icon': '📈', 'color': 'from-cyan-500 to-cyan-600', 'shadow': 'shadow-cyan-500/20', 'title': 'Exploratory Analysis', 'desc': 'Auto-generated charts plus target-aware statistical tests (Pearson, ANOVA, Kruskal-Wallis, chi-square with Cramér\'s V) that rank your features.'},
-                    {'icon': '⚡', 'color': 'from-emerald-500 to-green-600', 'shadow': 'shadow-emerald-500/20', 'title': 'Feature Engineering', 'desc': 'Date parts, interactions, polynomial terms, text statistics, PCA and mutual-information feature selection.'},
-                    {'icon': '🤖', 'color': 'from-rose-500 to-pink-600', 'shadow': 'shadow-rose-500/20', 'title': 'AutoML & Evaluation', 'desc': 'Detects the task, trains and tunes up to 11 scikit-learn models with cross-validation, and shows a leaderboard, ROC/PR curves, confusion matrix and feature importance.'}
+                    {'icon': 'search', 'color': 'from-blue-500 to-blue-600', 'shadow': 'shadow-blue-500/20', 'title': 'Automatic Profiling', 'desc': 'Detects numeric, categorical, boolean, datetime and text columns and computes descriptive statistics, missing values and duplicates.'},
+                    {'icon': 'shield', 'color': 'from-amber-500 to-orange-600', 'shadow': 'shadow-amber-500/20', 'title': 'Data Quality Score', 'desc': 'Scores the dataset 0–100 from missing values, outliers, skew, correlation and class imbalance, with a recommended fix for each issue.'},
+                    {'icon': 'broom', 'color': 'from-purple-500 to-purple-600', 'shadow': 'shadow-purple-500/20', 'title': 'Smart Preprocessing', 'desc': 'KNN/MICE imputation, outlier capping, scaling, power transforms, encoding and resampling — previewed before/after, then saved as a new dataset.'},
+                    {'icon': 'trend', 'color': 'from-cyan-500 to-cyan-600', 'shadow': 'shadow-cyan-500/20', 'title': 'Exploratory Analysis', 'desc': 'Auto-generated charts plus target-aware statistical tests (Pearson, ANOVA, Kruskal-Wallis, chi-square with Cramér\'s V) that rank your features.'},
+                    {'icon': 'layers', 'color': 'from-emerald-500 to-green-600', 'shadow': 'shadow-emerald-500/20', 'title': 'Feature Engineering', 'desc': 'Date parts, interactions, polynomial terms, text statistics, PCA and mutual-information feature selection.'},
+                    {'icon': 'cpu', 'color': 'from-rose-500 to-pink-600', 'shadow': 'shadow-rose-500/20', 'title': 'AutoML & Evaluation', 'desc': 'Detects the task, trains and tunes up to 11 scikit-learn models with cross-validation, and shows a leaderboard, ROC/PR curves, confusion matrix and feature importance.'}
                 ] %}
 
                 {% for feature in features %}
                 <div class="group glass rounded-2xl border border-white/[0.06] p-6 hover:border-white/[0.12] transition-all duration-300 hover:-translate-y-1 hover:shadow-xl {{ feature.shadow }}">
                     <div class="w-12 h-12 rounded-xl bg-gradient-to-br {{ feature.color }} flex items-center justify-center mb-5 shadow-lg {{ feature.shadow }} group-hover:scale-110 transition-transform duration-300">
-                        <span class="text-xl">{{ feature.icon }}</span>
+                        <span class="text-white">{{ icon(feature.icon, "w-6 h-6") }}</span>
                     </div>
                     <h3 class="text-lg font-semibold text-white mb-2">{{ feature.title }}</h3>
                     <p class="text-sm text-gray-400 leading-relaxed">{{ feature.desc }}</p>
@@ -155,7 +154,7 @@
         </div>
     </section>
 
-    <!-- ====== How It Works Section ====== -->
+    <!-- How It Works Section -->
     <section id="how-it-works" class="relative z-10 px-6 py-20 md:py-28">
         <div class="max-w-5xl mx-auto">
             <!-- Section Header -->
@@ -171,17 +170,17 @@
                 <div class="hidden md:block absolute top-12 left-[12%] right-[12%] h-px bg-gradient-to-r from-primary-500/30 via-purple-500/30 to-primary-500/30"></div>
 
                 {% set steps = [
-                    {'num': '01', 'icon': '☁️', 'title': 'Upload', 'desc': 'Drag & drop a CSV or Excel file. Type, size and duplicate checks run automatically.'},
-                    {'num': '02', 'icon': '🔬', 'title': 'Understand', 'desc': 'Profiling and a quality score show what is wrong with the data and how to fix it.'},
-                    {'num': '03', 'icon': '🧹', 'title': 'Prepare', 'desc': 'Clean, explore and engineer features — each step saves a new version of the dataset.'},
-                    {'num': '04', 'icon': '🎯', 'title': 'Train & Predict', 'desc': 'AutoML compares models, picks the best on cross-validation and serves predictions.'}
+                    {'num': '01', 'icon': 'upload', 'title': 'Upload', 'desc': 'Drag & drop a CSV or Excel file. Type, size and duplicate checks run automatically.'},
+                    {'num': '02', 'icon': 'search', 'title': 'Understand', 'desc': 'Profiling and a quality score show what is wrong with the data and how to fix it.'},
+                    {'num': '03', 'icon': 'broom', 'title': 'Prepare', 'desc': 'Clean, explore and engineer features — each step saves a new version of the dataset.'},
+                    {'num': '04', 'icon': 'target', 'title': 'Train & Predict', 'desc': 'AutoML compares models, picks the best on cross-validation and serves predictions.'}
                 ] %}
 
                 {% for step in steps %}
                 <div class="relative text-center group">
                     <!-- Step Number Circle -->
                     <div class="relative mx-auto w-24 h-24 rounded-2xl glass border border-white/[0.08] flex items-center justify-center mb-5 group-hover:border-primary-500/30 group-hover:shadow-lg group-hover:shadow-primary-500/10 transition-all duration-300">
-                        <span class="text-3xl group-hover:scale-110 transition-transform duration-300">{{ step.icon }}</span>
+                        <span class="text-primary-400 group-hover:scale-110 transition-transform duration-300">{{ icon(step.icon, "w-8 h-8") }}</span>
                         <span class="absolute -top-2 -right-2 w-7 h-7 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-[10px] font-bold text-white shadow-lg shadow-primary-500/30">{{ step.num }}</span>
                     </div>
                     <h3 class="text-base font-semibold text-white mb-2">{{ step.title }}</h3>
@@ -192,7 +191,7 @@
         </div>
     </section>
 
-    <!-- ====== Stats Section ====== -->
+    <!-- Stats Section -->
     <section id="stats" class="relative z-10 px-6 py-20 md:py-28">
         <div class="max-w-5xl mx-auto">
             <div class="glass rounded-3xl border border-white/[0.06] p-8 md:p-12">
@@ -215,7 +214,7 @@
         </div>
     </section>
 
-    <!-- ====== CTA Section ====== -->
+    <!-- CTA Section -->
     <section class="relative z-10 px-6 py-20 md:py-28">
         <div class="max-w-3xl mx-auto text-center">
             <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Ready to Transform Your Data?</h2>
@@ -227,7 +226,7 @@
         </div>
     </section>
 
-    <!-- ====== Footer ====== -->
+    <!-- Footer -->
     <footer class="relative z-10 border-t border-white/[0.06] px-6 py-8">
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-500">
             <div class="flex items-center gap-2">

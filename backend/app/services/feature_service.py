@@ -7,7 +7,6 @@ saving transformed files, and registering them as new datasets.
 
 import hashlib
 import logging
-import os
 import uuid
 from pathlib import Path
 
@@ -189,7 +188,7 @@ class FeatureService:
             raise NotFoundException(detail="Feature set not found")
         return feature_set
 
-    # ── Helpers ──────────────────────────────────────────────────
+    # Helpers
 
     async def _verify_dataset(self, dataset_id: uuid.UUID, user_id: uuid.UUID) -> Dataset:
         """Fetch dataset and verify user ownership."""

@@ -72,7 +72,7 @@ async def register(
 ) -> TokenResponse:
     """Register a new user and return tokens to auto-login."""
     service = AuthService(db)
-    user = await service.register_user(
+    await service.register_user(
         email=body.email,
         username=body.username,
         password=body.password,

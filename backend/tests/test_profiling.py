@@ -1,4 +1,4 @@
-"""Tests for dataset profiling endpoints (Phase 5).
+"""Tests for dataset profiling.
 
 Verifies type detection, Descriptive Statistics, duplicate rows,
 null counts, access control, and retrieval endpoints.
@@ -46,7 +46,7 @@ async def _upload_dataset(client: AsyncClient, token: str, filename: str = "samp
     return resp.json()["id"]
 
 
-# ── Ingestion & Profiling Tests ──────────────────────────────────────────────
+# Ingestion & Profiling Tests
 
 @pytest.mark.asyncio
 async def test_run_profiling_success(client: AsyncClient):

@@ -1,3 +1,4 @@
+{% from "components/icons.html" import icon %}
 <!-- Sidebar Navigation -->
 <div class="h-full flex flex-col glass-sidebar border-r border-white/[0.06] overflow-y-auto">
     <!-- Logo -->
@@ -28,7 +29,7 @@
            class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 {{ 'sidebar-link-active bg-primary-500/10 text-primary-400 border border-primary-500/20' if active_page == 'dashboard' else 'text-gray-400 hover:text-gray-200 hover:bg-white/[0.05]' }}"
            title="Dashboard">
             <span class="flex items-center justify-center w-8 h-8 rounded-lg {{ 'bg-primary-500/20' if active_page == 'dashboard' else 'bg-white/[0.05] group-hover:bg-white/[0.08]' }} transition-colors duration-200 flex-shrink-0">
-                <span class="text-base">📊</span>
+                {{ icon("chart") }}
             </span>
             <span class="sidebar-label">Dashboard</span>
         </a>
@@ -38,7 +39,7 @@
            class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 {{ 'sidebar-link-active bg-primary-500/10 text-primary-400 border border-primary-500/20' if active_page == 'upload' else 'text-gray-400 hover:text-gray-200 hover:bg-white/[0.05]' }}"
            title="Datasets">
             <span class="flex items-center justify-center w-8 h-8 rounded-lg {{ 'bg-primary-500/20' if active_page == 'upload' else 'bg-white/[0.05] group-hover:bg-white/[0.08]' }} transition-colors duration-200 flex-shrink-0">
-                <span class="text-base">📁</span>
+                {{ icon("folder") }}
             </span>
             <span class="sidebar-label">Datasets</span>
         </a>
@@ -50,7 +51,7 @@
            class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 {{ 'sidebar-link-active bg-primary-500/10 text-primary-400 border border-primary-500/20' if active_page == 'experiments' else 'text-gray-400 hover:text-gray-200 hover:bg-white/[0.05]' }}"
            title="AutoML">
             <span class="flex items-center justify-center w-8 h-8 rounded-lg {{ 'bg-primary-500/20' if active_page == 'experiments' else 'bg-white/[0.05] group-hover:bg-white/[0.08]' }} transition-colors duration-200 flex-shrink-0">
-                <span class="text-base">🤖</span>
+                {{ icon("cpu") }}
             </span>
             <span class="sidebar-label">AutoML &amp; Models</span>
         </a>
@@ -64,7 +65,7 @@
            class="sidebar-link group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 {{ 'sidebar-link-active bg-primary-500/10 text-primary-400 border border-primary-500/20' if active_page == 'settings' else 'text-gray-400 hover:text-gray-200 hover:bg-white/[0.05]' }}"
            title="Settings">
             <span class="flex items-center justify-center w-8 h-8 rounded-lg {{ 'bg-primary-500/20' if active_page == 'settings' else 'bg-white/[0.05] group-hover:bg-white/[0.08]' }} transition-colors duration-200 flex-shrink-0">
-                <span class="text-base">⚙️</span>
+                {{ icon("settings") }}
             </span>
             <span class="sidebar-label">Settings</span>
         </a>
@@ -74,8 +75,8 @@
            class="sidebar-link w-full text-left group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 text-gray-400 hover:text-gray-200 hover:bg-white/[0.05]"
            title="Toggle Theme">
             <span class="flex items-center justify-center w-8 h-8 rounded-lg bg-white/[0.05] group-hover:bg-white/[0.08] transition-colors duration-200 flex-shrink-0">
-                <span id="sidebar-theme-moon-icon" class="text-base">🌙</span>
-                <span id="sidebar-theme-sun-icon" class="text-base">☀️</span>
+                <span id="sidebar-theme-moon-icon">{{ icon("moon") }}</span>
+                <span id="sidebar-theme-sun-icon">{{ icon("sun") }}</span>
             </span>
             <span id="sidebar-theme-text" class="sidebar-label">Toggle Theme</span>
         </button>

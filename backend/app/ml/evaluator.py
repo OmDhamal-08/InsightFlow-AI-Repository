@@ -1,4 +1,4 @@
-"""Model evaluation (Phase 11).
+"""Model evaluation.
 
 Given a fitted pipeline and the held-out test split, produce:
 
@@ -79,7 +79,7 @@ def _predict_proba(model, X: pd.DataFrame) -> np.ndarray | None:
         return None
 
 
-# ── Classification ────────────────────────────────────────────────────
+# Classification
 
 def classification_metrics(y_true, y_pred, proba, n_classes: int) -> dict:
     labels = list(range(n_classes))
@@ -163,7 +163,7 @@ def classification_charts(y_true, y_pred, proba, class_labels: list[str]) -> dic
     }
 
 
-# ── Regression ────────────────────────────────────────────────────────
+# Regression
 
 def regression_metrics(y_true, y_pred, n_features: int) -> dict:
     y_true = np.asarray(y_true, dtype=float)
@@ -205,7 +205,7 @@ def regression_charts(y_true, y_pred) -> dict:
     }
 
 
-# ── Feature importance ────────────────────────────────────────────────
+# Feature importance
 
 def feature_importance(model, X: pd.DataFrame, y, feature_names: list[str]) -> list[dict]:
     """Permutation importance: how much the score drops when a column is shuffled."""
@@ -224,7 +224,7 @@ def feature_importance(model, X: pd.DataFrame, y, feature_names: list[str]) -> l
     return items[:TOP_FEATURES]
 
 
-# ── Entry point ───────────────────────────────────────────────────────
+# Entry point
 
 def evaluate_model(
     model,

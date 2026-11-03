@@ -5,10 +5,11 @@ Outlier-free, Distribution, Independence) and flags data quality issues
 with actionable preprocessing recommendations.
 """
 
-from datetime import datetime
 import logging
 import numpy as np
 import pandas as pd
+
+from app.ml.json_utils import to_json_value
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +39,7 @@ class DataQualityAnalyzer:
         numeric_cols = [c for c, t in column_types.items() if t == "numeric"]
         categorical_cols = [c for c, t in column_types.items() if t in ("categorical", "boolean")]
 
-        # ── 1. Completeness Analysis ────────────────────────────────
+        # 1. Completeness Analysis
         null_counts = df.isna().sum()
         total_null_cells = int(null_counts.sum())
         completeness_score = 100.0 * (1 - (total_null_cells / total_cells))
@@ -51,7 +52,7 @@ class DataQualityAnalyzer:
             for col in df.columns
         }
 
-        # ── 2. Uniqueness Analysis ──────────────────────────────────
+        # 2. Uniqueness Analysis
         duplicate_rows_count = int(df.duplicated().sum())
         duplicate_percentage = float((duplicate_rows_count / total_rows) * 100)
         uniqueness_score = 100.0 * (1 - (duplicate_rows_count / total_rows))
@@ -61,7 +62,7 @@ class DataQualityAnalyzer:
             "duplicate_percentage": duplicate_percentage,
         }
 
-        # ── 3. Outlier Analysis ─────────────────────────────────────
+        # 3. Outlier Analysis
         outlier_report = {}
         outlier_indices = set()
         for col in numeric_cols:
@@ -78,8 +79,8 @@ class DataQualityAnalyzer:
                 outlier_report[col] = {
                     "outlier_count": outlier_count,
                     "outlier_percentage": float((outlier_count / total_rows) * 100),
-                    "lower_bound": cls._to_json_val(lower_bound),
-                    "upper_bound": cls._to_json_val(upper_bound),
+                    "lower_bound": to_json_value(lower_bound),
+                    "upper_bound": to_json_value(upper_bound),
                 }
                 outlier_indices.update(outliers.index)
             else:
@@ -93,7 +94,7 @@ class DataQualityAnalyzer:
         rows_with_outliers_count = len(outlier_indices)
         outlier_free_score = 100.0 * (1 - (rows_with_outliers_count / total_rows))
 
-        # ── 4. Correlation & Multicollinearity ─────────────────────
+        # 4. Correlation & Multicollinearity
         correlation_matrix_dict = {}
         high_correlation_pairs = []
         independence_score = 100.0
@@ -113,12 +114,11 @@ class DataQualityAnalyzer:
                 # Convert matrix to JSON serializable nested dict
                 for col1 in corr_matrix.columns:
                     correlation_matrix_dict[col1] = {
-                        col2: cls._to_json_val(corr_matrix.loc[col1, col2])
+                        col2: to_json_value(corr_matrix.loc[col1, col2])
                         for col2 in corr_matrix.index
                     }
 
                 # Find pairs with |r| > 0.85
-                seen_pairs = set()
                 for i in range(len(non_zero_var_cols)):
                     for j in range(i + 1, len(non_zero_var_cols)):
                         col1 = non_zero_var_cols[i]
@@ -144,7 +144,7 @@ class DataQualityAnalyzer:
             "high_correlation_pairs": high_correlation_pairs,
         }
 
-        # ── 5. Skewness Analysis ────────────────────────────────────
+        # 5. Skewness Analysis
         skewness_report = {}
         skewed_cols_count = 0
         distribution_score = 100.0
@@ -153,7 +153,7 @@ class DataQualityAnalyzer:
             clean_series = df[col].dropna()
             if len(clean_series) > 0:
                 skew_val = clean_series.skew()
-                skew_val_json = cls._to_json_val(skew_val)
+                skew_val_json = to_json_value(skew_val)
                 skewness_report[col] = {"skewness": skew_val_json}
                 if skew_val_json is not None and abs(skew_val_json) > 1.5:
                     skewed_cols_count += 1
@@ -163,7 +163,7 @@ class DataQualityAnalyzer:
         if len(numeric_cols) > 0:
             distribution_score = 100.0 * (1 - (skewed_cols_count / len(numeric_cols)))
 
-        # ── 6. Class Imbalance Analysis ─────────────────────────────
+        # 6. Class Imbalance Analysis
         imbalance_report = {}
         for col in categorical_cols:
             clean_series = df[col].dropna()
@@ -180,7 +180,7 @@ class DataQualityAnalyzer:
                         "majority_to_minority_ratio": float(ratio),
                     }
 
-        # ── 7. Composite DQI Score Calculation ─────────────────────
+        # 7. Composite DQI Score Calculation
         # Completeness: 30%, Uniqueness: 20%, Outliers: 20%, Skewness: 15%, Independence: 15%
         quality_score = (
             (completeness_score * 0.30) +
@@ -191,13 +191,12 @@ class DataQualityAnalyzer:
         )
         quality_score = float(np.clip(quality_score, 0.0, 100.0))
 
-        # ── 8. Actionable Preprocessing Recommendations ─────────────
+        # 8. Actionable Preprocessing Recommendations
         recommendations = []
 
         # Missing values recommendations
         for col, metrics in missing_value_report.items():
             pct = metrics["null_percentage"]
-            count = metrics["null_count"]
             if pct > 0:
                 if pct > 50.0:
                     recommendations.append({
@@ -313,15 +312,3 @@ class DataQualityAnalyzer:
             "recommendations": [],
         }
 
-    @classmethod
-    def _to_json_val(cls, val):
-        """Helper to convert numpy numeric types to serializable python numbers."""
-        if pd.isna(val):
-            return None
-        if isinstance(val, (np.integer, np.int64, np.int32, np.int16, np.int8)):
-            return int(val)
-        if isinstance(val, (np.floating, np.float64, np.float32)):
-            if np.isnan(val) or np.isinf(val):
-                return None
-            return float(val)
-        return val

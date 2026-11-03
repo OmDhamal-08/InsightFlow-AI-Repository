@@ -1,4 +1,4 @@
-"""Tests for Exploratory Data Analysis (EDA) engine (Phase 8).
+"""Tests for the EDA engine and endpoints.
 
 Verifies overview calculations (heatmaps, null counts, categorical counts), dynamic
 custom plots (normality tests, regression scatters, boxplots), and access control security.
@@ -44,7 +44,7 @@ async def _upload_dataset(client: AsyncClient, token: str) -> str:
     return resp.json()["id"]
 
 
-# ── Overview EDA Tests ────────────────────────────────────────────────────────
+# Overview EDA Tests
 
 @pytest.mark.asyncio
 async def test_run_summary_eda_success(client: AsyncClient):
@@ -80,7 +80,7 @@ async def test_run_summary_eda_success(client: AsyncClient):
     assert len(db_charts) == len(charts)
 
 
-# ── Custom Plot EDA Tests ─────────────────────────────────────────────────────
+# Custom Plot EDA Tests
 
 @pytest.mark.asyncio
 async def test_custom_distribution_plot_success(client: AsyncClient):
@@ -127,7 +127,7 @@ async def test_custom_scatter_plot_success(client: AsyncClient):
     assert result["chart_data"]["r_squared"] == pytest.approx(1.0, 0.01)
 
 
-# ── EDA Security Tests ────────────────────────────────────────────────────────
+# EDA Security Tests
 
 @pytest.mark.asyncio
 async def test_eda_unauthorized_access(client: AsyncClient):

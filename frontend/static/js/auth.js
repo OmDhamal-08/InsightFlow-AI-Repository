@@ -17,9 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-/* ================================================
-   Login Handler
-   ================================================ */
+// Login Handler
 async function handleLogin(e) {
     e.preventDefault();
 
@@ -51,11 +49,10 @@ async function handleLogin(e) {
 
         if (response.ok) {
             const data = await response.json();
-            // Set access token in memory cache
+            // sessionStorage keeps the token across page loads in this tab only;
+            // the long-lived refresh token stays in an httpOnly cookie.
             setAccessToken(data.access_token);
-            // Optionally, you can store it in sessionStorage for tab persistence
             sessionStorage.setItem('access_token', data.access_token);
-            // Redirect to dashboard
             window.location.href = '/dashboard';
         } else {
             const errData = await response.json().catch(() => ({}));
@@ -75,9 +72,7 @@ async function handleLogin(e) {
     }
 }
 
-/* ================================================
-   Register Handler
-   ================================================ */
+// Register Handler
 async function handleRegister(e) {
     e.preventDefault();
 
@@ -154,9 +149,7 @@ async function handleRegister(e) {
     }
 }
 
-/* ================================================
-   Password Visibility Toggle (WORKING)
-   ================================================ */
+// Password Visibility Toggle (WORKING)
 function togglePasswordVisibility(inputId, button) {
     const input = document.getElementById(inputId);
     if (!input) return;
@@ -175,9 +168,7 @@ function togglePasswordVisibility(inputId, button) {
     }
 }
 
-/* ================================================
-   Password Strength
-   ================================================ */
+// Password Strength
 
 /**
  * Strength level using exactly the server's rules (see schemas/auth.py):
@@ -220,9 +211,7 @@ function checkPasswordStrength(password) {
     return level;
 }
 
-/* ================================================
-   Validation Helpers
-   ================================================ */
+// Validation Helpers
 function isValidEmail(email) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }

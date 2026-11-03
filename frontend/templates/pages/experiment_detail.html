@@ -5,7 +5,7 @@
 
 {% block dashboard_content %}
 <div class="space-y-6" id="experiment-page-root" data-experiment-id="{{ experiment_id }}">
-    <!-- ====== Header ====== -->
+    <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div class="min-w-0">
             <div class="flex items-center gap-2 text-xs text-gray-500 mb-1">
@@ -21,15 +21,15 @@
 
     <div id="exp-error" class="hidden p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-sm text-red-300"></div>
 
-    <!-- ====== Summary Cards ====== -->
+    <!-- Summary Cards -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4" id="exp-cards"></div>
 
     <div id="exp-dropped" class="hidden p-3 rounded-xl bg-amber-500/[0.06] border border-amber-500/20 text-xs text-amber-200"></div>
 
-    <!-- ====== Leaderboard ====== -->
+    <!-- Leaderboard -->
     <div class="glass rounded-2xl border border-white/[0.06] p-5">
         <div class="flex items-center justify-between mb-4">
-            <h3 class="text-sm font-semibold text-gray-300">🏆 Model leaderboard</h3>
+            <h3 class="text-sm font-semibold text-gray-300">Model leaderboard</h3>
             <span class="text-[10px] text-gray-500" id="leaderboard-note"></span>
         </div>
         <div class="overflow-x-auto">
@@ -40,7 +40,7 @@
         </div>
     </div>
 
-    <!-- ====== Evaluation of selected model ====== -->
+    <!-- Evaluation of selected model -->
     <div id="eval-section" class="hidden space-y-6">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <h2 class="text-lg font-bold text-white" id="eval-title"></h2>
@@ -112,7 +112,7 @@
         <!-- Live prediction -->
         <div class="glass rounded-2xl border border-white/[0.06] p-5">
             <div class="flex items-center justify-between mb-1">
-                <h4 class="text-sm font-semibold text-gray-300">🔮 Try a prediction</h4>
+                <h4 class="text-sm font-semibold text-gray-300">Try a prediction</h4>
                 <span class="text-[10px] text-gray-500">Pre-filled with the first row of the dataset</span>
             </div>
             <p class="text-[10px] text-gray-500 mb-4">Calls <code class="font-mono">POST /api/v1/experiments/{id}/models/{model_id}/predict</code> — the same endpoint an external app would use. Leave a field empty to let the model impute it.</p>

@@ -10,9 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 let selectedFile = null;
 
-/* ================================================
-   Initialize Upload Zone
-   ================================================ */
+// Initialize Upload Zone
 function initUploadZone() {
     const dropZone = document.getElementById('drop-zone');
     const fileInput = document.getElementById('file-input');
@@ -58,9 +56,7 @@ function initUploadZone() {
     });
 }
 
-/* ================================================
-   Handle File Selection → Auto-upload
-   ================================================ */
+// Handle File Selection → Auto-upload
 function handleFileSelection(file) {
     // Validate file type
     const allowedTypes = ['.csv', '.xlsx', '.xls'];
@@ -93,9 +89,7 @@ function handleFileSelection(file) {
     uploadFile(file);
 }
 
-/* ================================================
-   Upload File to Backend
-   ================================================ */
+// Upload File to Backend
 async function uploadFile(file) {
     const progressSection = document.getElementById('upload-progress');
     const progressBar = document.getElementById('progress-bar');
@@ -187,9 +181,7 @@ async function uploadFile(file) {
     }
 }
 
-/* ================================================
-   Remove Selected File
-   ================================================ */
+// Remove Selected File
 function removeFile() {
     selectedFile = null;
 
@@ -200,9 +192,7 @@ function removeFile() {
     if (fileInput) fileInput.value = '';
 }
 
-/* ================================================
-   Cancel Upload
-   ================================================ */
+// Cancel Upload
 function cancelUpload() {
     if (window._currentUploadXhr) {
         window._currentUploadXhr.abort();
@@ -216,9 +206,7 @@ function cancelUpload() {
     if (progressBar) progressBar.style.width = '0%';
 }
 
-/* ================================================
-   Load Datasets List
-   ================================================ */
+// Load Datasets List
 async function loadDatasets() {
     try {
         const resp = await apiGet('/datasets/');
@@ -295,9 +283,7 @@ async function loadDatasets() {
     }
 }
 
-/* ================================================
-   Preview Dataset
-   ================================================ */
+// Preview Dataset
 let _previewDatasetId = null;
 
 async function previewDataset(datasetId) {
@@ -365,9 +351,7 @@ async function _fetchAndRenderPreview(datasetId, rows) {
     }
 }
 
-/* ================================================
-   Delete Dataset
-   ================================================ */
+// Delete Dataset
 async function deleteDataset(datasetId) {
     if (!confirm('Are you sure you want to delete this dataset? This cannot be undone.')) return;
 
@@ -384,9 +368,7 @@ async function deleteDataset(datasetId) {
     }
 }
 
-/* ================================================
-   Helpers
-   ================================================ */
+// Helpers
 function formatFileSize(bytes) {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;

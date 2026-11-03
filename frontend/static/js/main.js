@@ -74,7 +74,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     // ---- Load Notifications (after auth) ----
     loadNavNotifications();
 
-    console.log('%c🚀 AI BI Platform loaded', 'color: #3b82f6; font-weight: bold; font-size: 14px;');
 });
 
 /**
@@ -175,9 +174,7 @@ async function handleLogout(e) {
     window.location.href = '/login';
 }
 
-/* ================================================
-   Sidebar Toggle (mobile)
-   ================================================ */
+// Sidebar Toggle (mobile)
 function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('sidebar-overlay');
@@ -196,9 +193,7 @@ function toggleSidebar() {
     }
 }
 
-/* ================================================
-   Desktop Sidebar Collapse (shrink/expand)
-   ================================================ */
+// Desktop Sidebar Collapse (shrink/expand)
 function toggleSidebarCollapse() {
     const sidebar = document.getElementById('sidebar');
     const mainContent = document.getElementById('main-content');
@@ -264,9 +259,7 @@ if (document.readyState === 'loading') {
     restoreSidebarState();
 }
 
-/* ================================================
-   User Dropdown Toggle
-   ================================================ */
+// User Dropdown Toggle
 function toggleUserDropdown() {
     const dropdown = document.getElementById('user-dropdown');
     const arrow = document.getElementById('dropdown-arrow');
@@ -280,9 +273,7 @@ function toggleUserDropdown() {
     }
 }
 
-/* ================================================
-   Alert Dismiss
-   ================================================ */
+// Alert Dismiss
 function dismissAlert(button) {
     const alert = button.closest('.alert-item');
     if (!alert) return;
@@ -293,9 +284,7 @@ function dismissAlert(button) {
     }, 200);
 }
 
-/* ================================================
-   Loading Overlay
-   ================================================ */
+// Loading Overlay
 function showLoading(message = 'Loading...') {
     const overlay = document.getElementById('loading-overlay');
     const text = document.getElementById('loading-text');
@@ -312,9 +301,7 @@ function hideLoading() {
     }
 }
 
-/* ================================================
-   Theme Management (Dark / Light Mode Toggle)
-   ================================================ */
+// Theme Management (Dark / Light Mode Toggle)
 function initTheme() {
     const theme = localStorage.getItem('theme') || 'dark';
     document.documentElement.className = theme;
@@ -364,9 +351,7 @@ function syncThemeUI(theme) {
     if (sidebarText) sidebarText.textContent = isLight ? 'Switch to Dark' : 'Switch to Light';
 }
 
-/* ================================================
-   Format Helpers
-   ================================================ */
+// Format Helpers
 function formatDate(dateStr) {
     if (!dateStr) return '--';
     const date = new Date(dateStr);
@@ -382,9 +367,7 @@ function formatNumber(num) {
     return Number(num).toLocaleString('en-US');
 }
 
-/* ================================================
-   Navbar Search
-   ================================================ */
+// Navbar Search
 let _searchDebounceTimer = null;
 
 function initNavSearch() {
@@ -434,7 +417,7 @@ async function handleNavSearch(rawQuery) {
         if (matches.length === 0) {
             dropdown.innerHTML = `
                 <div class="px-4 py-4 text-xs text-gray-500 text-center">
-                    🔍 No matching datasets for "<span class="text-gray-300">${escapeHtml(rawQuery.trim())}</span>"
+                    No matching datasets for "<span class="text-gray-300">${escapeHtml(rawQuery.trim())}</span>"
                 </div>`;
         } else {
             dropdown.innerHTML = matches.slice(0, 8).map(ds => `
@@ -474,9 +457,7 @@ function resetLocalDatasetFilter() {
     rows.forEach(row => { row.style.display = ''; });
 }
 
-/* ================================================
-   Notification Bell Dropdown
-   ================================================ */
+// Notification Bell Dropdown
 let _navNotifications = [];
 
 function toggleNotificationDropdown() {
@@ -521,7 +502,7 @@ function renderNavNotifications() {
     if (_navNotifications.length === 0) {
         list.innerHTML = `
             <div class="px-4 py-6 text-xs text-gray-500 text-center">
-                📭 No notifications — you're all caught up!
+                No notifications — you're all caught up!
             </div>`;
         return;
     }
@@ -541,11 +522,4 @@ function clearAllNotifications() {
     _navNotifications = [];
     renderNavNotifications();
     showToast('Notifications cleared', 'success');
-}
-
-/* ================================================
-   Coming Soon Alert (Sidebar disabled features)
-   ================================================ */
-function showComingSoonAlert(featureName, phase) {
-    showToast(`🚧 ${featureName} is planned for Phase ${phase} of the development roadmap. Stay tuned!`, 'info');
 }

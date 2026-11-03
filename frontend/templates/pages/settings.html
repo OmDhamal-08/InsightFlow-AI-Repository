@@ -5,13 +5,13 @@
 
 {% block dashboard_content %}
 <div class="space-y-8">
-    <!-- ====== Page Header ====== -->
+    <!-- Page Header -->
     <div>
         <h1 class="text-2xl font-bold text-white">Settings</h1>
         <p class="mt-1 text-sm text-gray-400">Manage your account and preferences.</p>
     </div>
 
-    <!-- ====== Tabs Navigation ====== -->
+    <!-- Tabs Navigation -->
     <div class="flex items-center gap-1 p-1 rounded-xl bg-white/[0.03] border border-white/[0.06] w-fit">
         <button onclick="switchSettingsTab('profile')" id="tab-profile"
                 class="settings-tab px-5 py-2 text-sm font-medium rounded-lg transition-all duration-200 text-white bg-white/[0.08]">
@@ -27,7 +27,7 @@
         </button>
     </div>
 
-    <!-- ====== Profile Tab ====== -->
+    <!-- Profile Tab -->
     <div id="panel-profile" class="settings-panel">
         <div class="glass rounded-2xl border border-white/[0.06] p-6 md:p-8">
             <form id="profile-form" class="space-y-6">
@@ -105,7 +105,7 @@
         </div>
     </div>
 
-    <!-- ====== Security Tab ====== -->
+    <!-- Security Tab -->
     <div id="panel-security" class="settings-panel hidden">
         <div class="glass rounded-2xl border border-white/[0.06] p-6 md:p-8">
             <h3 class="text-lg font-semibold text-white mb-1">Change Password</h3>
@@ -146,7 +146,7 @@
         </div>
     </div>
 
-    <!-- ====== Preferences Tab ====== -->
+    <!-- Preferences Tab -->
     <div id="panel-preferences" class="settings-panel hidden">
         <div class="space-y-6">
             <!-- Theme -->

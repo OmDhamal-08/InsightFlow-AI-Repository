@@ -1,4 +1,4 @@
-"""Tests for Feature Engineering pipeline (Phase 9).
+"""Tests for feature engineering.
 
 Verifies datetime splits, numeric interactions, polynomial features, PCA projection,
 Mutual Information selection, output file saves, dataset registration, and security restrictions.
@@ -44,7 +44,7 @@ async def _upload_dataset(client: AsyncClient, token: str) -> str:
     return resp.json()["id"]
 
 
-# ── Feature engineering generation & previews ──────────────────────────────────
+# Feature engineering generation & previews
 
 @pytest.mark.asyncio
 async def test_feature_generate_date_success(client: AsyncClient):
@@ -145,7 +145,7 @@ async def test_feature_generate_selection_success(client: AsyncClient):
     assert "target" in cols
 
 
-# ── Feature set applying tests ────────────────────────────────────────────────
+# Feature set applying tests
 
 @pytest.mark.asyncio
 async def test_feature_apply_success(client: AsyncClient):
@@ -188,7 +188,7 @@ async def test_feature_apply_success(client: AsyncClient):
     assert "data_engineered.csv" in names
 
 
-# ── Feature Engineering Security Tests ───────────────────────────────────────
+# Feature Engineering Security Tests
 
 @pytest.mark.asyncio
 async def test_feature_unauthorized_access(client: AsyncClient):

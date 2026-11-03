@@ -1,8 +1,5 @@
-/* ============================================
-   AI BI Platform — Global Styles
-   Supplements Tailwind CSS with custom
-   components, animations, and effects.
-   ============================================ */
+/* Global styles that Tailwind doesn't cover: theme variables, glass panels,
+   light-mode overrides and animations. */
 
 /* ---- CSS Custom Properties ---- */
 :root {

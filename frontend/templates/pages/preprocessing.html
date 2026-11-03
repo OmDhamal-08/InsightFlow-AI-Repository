@@ -1,11 +1,11 @@
 {% extends "base_dashboard.html" %}
 
-{% block page_title %}Smart Preprocessing — AI BI Platform{% endblock %}
+{% block page_title %}Preprocessing{% endblock %}
 {% block meta_description %}Granular column-specific preprocessing wizard. Impute missing values, cap outliers, scale features, and discretize numerical fields.{% endblock %}
 
 {% block dashboard_content %}
 <div class="space-y-8" id="preprocessing-page-root" data-dataset-id="{{ dataset_id }}">
-    <!-- ====== Page Header ====== -->
+    <!-- Page Header -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
             <div class="flex items-center gap-2 text-xs text-gray-500 mb-1">
@@ -14,7 +14,7 @@
                 <span class="text-gray-400">Preprocessing</span>
             </div>
             <h1 class="text-2xl font-bold text-white flex items-center gap-2.5">
-                🧪 Preprocessing Wizard: <span id="dataset-name" class="gradient-text bg-gradient-to-r from-primary-400 to-purple-400">Loading...</span>
+                Preprocessing: <span id="dataset-name" class="gradient-text bg-gradient-to-r from-primary-400 to-purple-400">Loading...</span>
             </h1>
             <p class="mt-1 text-sm text-gray-400">Configure and apply column-specific cleaning transforms to prepare your dataset for machine learning.</p>
         </div>
@@ -25,7 +25,7 @@
         </div>
     </div>
 
-    <!-- ====== Sub Navigation ====== -->
+    <!-- Sub Navigation -->
     {% include 'components/dataset_subnav.html' %}
 
     <!-- Wizard Form Card -->
@@ -39,7 +39,7 @@
             </div>
             <div class="flex items-center gap-3">
                 <button onclick="fetchRecommendations()" class="w-full px-4 py-3 text-xs font-semibold text-primary-400 bg-primary-500/10 hover:bg-primary-500/15 rounded-xl border border-primary-500/20 transition-all flex items-center justify-center gap-1.5" title="Pre-fill based on data quality audit">
-                    <span>⚡ Load Recommendations</span>
+                    <span>Load Recommendations</span>
                 </button>
             </div>
         </div>
@@ -68,10 +68,10 @@
             </div>
         </div>
 
-        <!-- ====== Class Imbalance Resampling Panel ====== -->
+        <!-- Class Imbalance Resampling Panel -->
         <div class="border-t border-white/[0.06] pt-6">
             <div class="flex items-center gap-2 mb-4">
-                <h3 class="text-sm font-semibold text-gray-300">⚖️ Class Imbalance Resampling</h3>
+                <h3 class="text-sm font-semibold text-gray-300">Class Imbalance Resampling</h3>
                 <span class="text-[9px] font-bold uppercase tracking-wider bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded-full border border-amber-500/20">Optional</span>
             </div>
             <p class="text-xs text-gray-500 mb-4">Balance class distributions in your target column using random resampling before applying other transformations.</p>
@@ -109,7 +109,7 @@
         </div>
     </div>
 
-    <!-- ====== Preprocessing Preview Pane ====== -->
+    <!-- Preprocessing Preview Pane -->
     <div id="preview-pane-card" class="hidden glass rounded-2xl border border-white/[0.06] p-6 space-y-6">
         <div>
             <h3 class="text-sm font-semibold text-gray-300">Transformation Preview Comparison</h3>

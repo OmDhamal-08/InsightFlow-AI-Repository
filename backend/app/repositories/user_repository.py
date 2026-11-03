@@ -5,7 +5,7 @@ keeping the service layer free of raw SQLAlchemy calls.
 """
 
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -20,7 +20,7 @@ class UserRepository:
     def __init__(self, db: AsyncSession) -> None:
         self.db = db
 
-    # ── User queries ─────────────────────────────────────────────
+    # User queries
 
     async def get_by_id(self, user_id: uuid.UUID) -> User | None:
         """Fetch a user by primary key, eagerly loading profile."""
@@ -88,7 +88,7 @@ class UserRepository:
         await self.db.flush()  # Assign IDs without committing
         return user
 
-    # ── Refresh token queries ────────────────────────────────────
+    # Refresh token queries
 
     async def save_refresh_token(
         self, user_id: uuid.UUID, token: str, expires_at: datetime
@@ -125,7 +125,7 @@ class UserRepository:
             rt.is_revoked = True
         await self.db.flush()
 
-    # ── Profile queries ──────────────────────────────────────────
+    # Profile queries
 
     async def update_profile(
         self, user_id: uuid.UUID, **fields: str | None

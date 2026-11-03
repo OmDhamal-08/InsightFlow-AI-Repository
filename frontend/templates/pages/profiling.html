@@ -1,11 +1,11 @@
 {% extends "base_dashboard.html" %}
 
-{% block page_title %}Dataset Profiling — AI BI Platform{% endblock %}
+{% block page_title %}Dataset Profiling{% endblock %}
 {% block meta_description %}Interactive profiling results for your uploaded dataset. View columns, missing values, duplicates, and descriptive statistics.{% endblock %}
 
 {% block dashboard_content %}
 <div class="space-y-8" id="profiling-page-root" data-dataset-id="{{ dataset_id }}">
-    <!-- ====== Page Header ====== -->
+    <!-- Page Header -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
             <div class="flex items-center gap-2 text-xs text-gray-500 mb-1">
@@ -14,7 +14,7 @@
                 <span class="text-gray-400">Profiling</span>
             </div>
             <h1 class="text-2xl font-bold text-white flex items-center gap-2.5">
-                📊 Dataset Profiling: <span id="dataset-name" class="gradient-text bg-gradient-to-r from-primary-400 to-purple-400">Loading...</span>
+                Dataset Profiling: <span id="dataset-name" class="gradient-text bg-gradient-to-r from-primary-400 to-purple-400">Loading...</span>
             </h1>
             <p class="mt-1 text-sm text-gray-400">Detailed data type detection, descriptive statistics, and quality analysis.</p>
         </div>
@@ -25,10 +25,10 @@
         </div>
     </div>
 
-    <!-- ====== Sub Navigation ====== -->
+    <!-- Sub Navigation -->
     {% include 'components/dataset_subnav.html' %}
 
-    <!-- ====== Status Block (Not Profiled state) ====== -->
+    <!-- Status Block (Not Profiled state) -->
     <div id="status-not-profiled" class="hidden glass rounded-2xl border border-white/[0.06] p-12 text-center max-w-xl mx-auto">
         <div class="w-16 h-16 mx-auto rounded-2xl bg-primary-500/10 border border-primary-500/20 flex items-center justify-center mb-6">
             <svg class="w-8 h-8 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -43,14 +43,14 @@
         </button>
     </div>
 
-    <!-- ====== Status Block (Loading state) ====== -->
+    <!-- Status Block (Loading state) -->
     <div id="status-profiling-loading" class="hidden glass rounded-2xl border border-white/[0.06] p-12 text-center max-w-xl mx-auto">
         <div class="w-12 h-12 mx-auto rounded-full border-4 border-primary-500/20 border-t-primary-500 animate-spin mb-6"></div>
         <h3 class="text-lg font-bold text-white mb-2">Analyzing Dataset...</h3>
         <p class="text-sm text-gray-400">Please wait. We are loading the dataset and running statistical analysis. This may take a few seconds for larger files.</p>
     </div>
 
-    <!-- ====== Profiling Dashboard (Active state) ====== -->
+    <!-- Profiling Dashboard (Active state) -->
     <div id="profiling-results-dashboard" class="hidden space-y-8">
         
         <!-- Summary Statistics Cards -->

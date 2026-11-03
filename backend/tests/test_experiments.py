@@ -1,4 +1,4 @@
-"""API tests for AutoML experiments (Phase 10) and model evaluation (Phase 11)."""
+"""API tests for AutoML experiments and model evaluation."""
 
 import io
 from pathlib import Path

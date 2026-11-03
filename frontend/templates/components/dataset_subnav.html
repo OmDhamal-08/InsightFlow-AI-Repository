@@ -1,27 +1,27 @@
-<!-- ====== Dataset Operations Sub-Navigation ====== -->
+{% from "components/icons.html" import icon %}
 <div class="flex flex-wrap items-center gap-2 p-1 rounded-xl bg-white/[0.03] border border-white/[0.06] w-full sm:w-fit glass mb-6">
     <a href="/datasets/{{ dataset_id }}/profile" 
        class="px-4 py-2 text-xs font-semibold rounded-lg transition-all duration-200 flex items-center gap-2 {% if active_subpage == 'profile' %}text-white bg-primary-500/20 border border-primary-500/20{% else %}text-gray-400 hover:text-gray-200 hover:bg-white/[0.05]{% endif %}">
-        <span>📊</span> Profiling
+        {{ icon("chart") }} Profiling
     </a>
     <a href="/datasets/{{ dataset_id }}/quality" 
        class="px-4 py-2 text-xs font-semibold rounded-lg transition-all duration-200 flex items-center gap-2 {% if active_subpage == 'quality' %}text-white bg-primary-500/20 border border-primary-500/20{% else %}text-gray-400 hover:text-gray-200 hover:bg-white/[0.05]{% endif %}">
-        <span>🛡️</span> Quality
+        {{ icon("shield") }} Quality
     </a>
     <a href="/datasets/{{ dataset_id }}/preprocess" 
        class="px-4 py-2 text-xs font-semibold rounded-lg transition-all duration-200 flex items-center gap-2 {% if active_subpage == 'preprocess' %}text-white bg-primary-500/20 border border-primary-500/20{% else %}text-gray-400 hover:text-gray-200 hover:bg-white/[0.05]{% endif %}">
-        <span>🧹</span> Preprocessing
+        {{ icon("broom") }} Preprocessing
     </a>
     <a href="/datasets/{{ dataset_id }}/eda" 
        class="px-4 py-2 text-xs font-semibold rounded-lg transition-all duration-200 flex items-center gap-2 {% if active_subpage == 'eda' %}text-white bg-primary-500/20 border border-primary-500/20{% else %}text-gray-400 hover:text-gray-200 hover:bg-white/[0.05]{% endif %}">
-        <span>📈</span> EDA
+        {{ icon("trend") }} EDA
     </a>
     <a href="/datasets/{{ dataset_id }}/features" 
        class="px-4 py-2 text-xs font-semibold rounded-lg transition-all duration-200 flex items-center gap-2 {% if active_subpage == 'features' %}text-white bg-primary-500/20 border border-primary-500/20{% else %}text-gray-400 hover:text-gray-200 hover:bg-white/[0.05]{% endif %}">
-        <span>⚡</span> Feature Eng
+        {{ icon("layers") }} Feature Eng
     </a>
     <a href="/experiments?dataset_id={{ dataset_id }}"
        class="px-4 py-2 text-xs font-semibold rounded-lg transition-all duration-200 flex items-center gap-2 text-gray-400 hover:text-gray-200 hover:bg-white/[0.05]">
-        <span>🤖</span> Train Models
+        {{ icon("cpu") }} Train Models
     </a>
 </div>

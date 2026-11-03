@@ -3,9 +3,7 @@
  * Pure utility functions used across the platform.
  */
 
-/* ================================================
-   HTML Escaping
-   ================================================ */
+// HTML Escaping
 
 /**
  * Escape a value for safe insertion into HTML text or attribute context.
@@ -24,9 +22,7 @@ function escapeHtml(value) {
         .replace(/'/g, '&#39;');
 }
 
-/* ================================================
-   Date Formatting
-   ================================================ */
+// Date Formatting
 
 /**
  * Format an ISO date string to a human-readable format.
@@ -70,9 +66,7 @@ function formatDateTime(dateStr) {
     }
 }
 
-/* ================================================
-   Number Formatting
-   ================================================ */
+// Number Formatting
 
 /**
  * Format a number with comma separators.
@@ -97,9 +91,7 @@ function formatFileSize(bytes) {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
-/* ================================================
-   String Utilities
-   ================================================ */
+// String Utilities
 
 /**
  * Truncate text with ellipsis.
@@ -113,9 +105,7 @@ function truncateText(text, maxLength = 50) {
     return text.substring(0, maxLength).trim() + '…';
 }
 
-/* ================================================
-   Function Utilities
-   ================================================ */
+// Function Utilities
 
 /**
  * Debounce a function.
@@ -131,9 +121,7 @@ function debounce(fn, delay = 300) {
     };
 }
 
-/* ================================================
-   Toast Notification
-   ================================================ */
+// Toast Notification
 
 /**
  * Show a toast notification.

@@ -1,4 +1,4 @@
-"""Tests for the Data Quality Engine (Phase 6).
+"""Tests for the data quality engine.
 
 Verifies multidimensional DQI scoring, missing value counts, outliers,
 multicollinearity flagging, skewness, class imbalance, and recommendation mappings.
@@ -55,7 +55,7 @@ async def _upload_dataset(client: AsyncClient, token: str) -> str:
     return resp.json()["id"]
 
 
-# ── Quality Analysis Tests ──────────────────────────────────────────────────
+# Quality Analysis Tests
 
 @pytest.mark.asyncio
 async def test_run_quality_analysis_success(client: AsyncClient):

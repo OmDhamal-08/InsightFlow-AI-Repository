@@ -1,4 +1,4 @@
-"""Tests for Smart Preprocessing pipeline (Phase 7).
+"""Tests for the preprocessing engine and endpoints.
 
 Verifies preview generations, column-specific imputations, scaling, outlier capping,
 column drops, clean CSV output registrations, and access controls.
@@ -48,7 +48,7 @@ async def _upload_dataset(client: AsyncClient, token: str) -> str:
     return resp.json()["id"]
 
 
-# ── Preprocessing Preview Tests ──────────────────────────────────────────────
+# Preprocessing Preview Tests
 
 @pytest.mark.asyncio
 async def test_preprocess_preview_success(client: AsyncClient):
@@ -85,7 +85,7 @@ async def test_preprocess_preview_success(client: AsyncClient):
     assert result["after"]["summary"]["age"]["mean"] < 40
 
 
-# ── Preprocessing Apply Tests ────────────────────────────────────────────────
+# Preprocessing Apply Tests
 
 @pytest.mark.asyncio
 async def test_preprocess_apply_success(client: AsyncClient):
@@ -133,7 +133,7 @@ async def test_preprocess_apply_success(client: AsyncClient):
     assert cleaned_ds["column_count"] == 4
 
 
-# ── Preprocessing Security Tests ─────────────────────────────────────────────
+# Preprocessing Security Tests
 
 @pytest.mark.asyncio
 async def test_preprocess_unauthorized_access(client: AsyncClient):

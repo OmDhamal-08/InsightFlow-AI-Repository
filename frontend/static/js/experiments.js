@@ -1,5 +1,5 @@
 /**
- * AI BI Platform — AutoML Experiments page (Phase 10).
+ * AI BI Platform — AutoML Experiments page.
  * Flow: dataset → target → GET /experiments/recommend → pick algorithms → POST /experiments/.
  */
 

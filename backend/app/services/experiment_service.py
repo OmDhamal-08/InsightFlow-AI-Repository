@@ -1,4 +1,4 @@
-"""Business logic for AutoML experiments (Phase 10) and model evaluation (Phase 11).
+"""Business logic for AutoML experiments and model evaluation.
 
 The heavy lifting lives in ``app.ml.automl`` / ``app.ml.evaluator``. This layer:
   * checks ownership and validates the request,
@@ -46,7 +46,7 @@ class ExperimentService:
         self.repo = ExperimentRepository(db)
         self.dataset_repo = DatasetRepository(db)
 
-    # ── Recommendations ──────────────────────────────────────────
+    # Recommendations
 
     async def recommend(self, dataset_id: uuid.UUID, target_column: str, user_id: uuid.UUID) -> dict:
         """Detect the task type for a target and list suitable algorithms and metrics."""
@@ -79,7 +79,7 @@ class ExperimentService:
             "default_metric": automl.default_metric(task),
         }
 
-    # ── Training ─────────────────────────────────────────────────
+    # Training
 
     async def create_experiment(self, user_id: uuid.UUID, req: ExperimentCreate) -> dict:
         """Train and compare models, then persist the leaderboard.
@@ -188,7 +188,7 @@ class ExperimentService:
         logger.info("Experiment %s %s in %.1fs", experiment.id, experiment.status, experiment.training_time_seconds)
         return self._to_detail(experiment)
 
-    # ── Queries ──────────────────────────────────────────────────
+    # Queries
 
     async def list_experiments(self, user_id: uuid.UUID, dataset_id: uuid.UUID | None = None) -> list[dict]:
         experiments = await self.repo.list_by_user(user_id, dataset_id)
@@ -234,7 +234,7 @@ class ExperimentService:
     async def count_trained_models(self, user_id: uuid.UUID) -> int:
         return await self.repo.count_trained_models(user_id)
 
-    # ── Helpers ──────────────────────────────────────────────────
+    # Helpers
 
     async def _get_dataset(self, dataset_id: uuid.UUID, user_id: uuid.UUID) -> Dataset:
         dataset = await self.dataset_repo.get_by_id(dataset_id, user_id)

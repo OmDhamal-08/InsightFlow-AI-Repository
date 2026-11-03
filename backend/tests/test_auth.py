@@ -26,7 +26,7 @@ async def _register(client: AsyncClient, email: str, username: str, password: st
     )
 
 
-# ── Registration ─────────────────────────────────────────────────────
+# Registration
 
 @pytest.mark.asyncio
 async def test_register_success(client: AsyncClient):
@@ -77,7 +77,7 @@ async def test_register_weak_password(client: AsyncClient):
     assert resp.status_code == 422
 
 
-# ── Login ────────────────────────────────────────────────────────────
+# Login
 
 @pytest.mark.asyncio
 async def test_login_success(client: AsyncClient):
@@ -125,7 +125,7 @@ async def test_login_wrong_password(client: AsyncClient):
     assert resp.status_code == 401
 
 
-# ── Protected Route (/me) ───────────────────────────────────────────
+# Protected Route (/me)
 
 @pytest.mark.asyncio
 async def test_me_authenticated(client: AsyncClient):
@@ -158,7 +158,7 @@ async def test_me_unauthenticated(client: AsyncClient):
     assert resp.status_code == 401
 
 
-# ── Token types ──────────────────────────────────────────────────────
+# Token types
 
 @pytest.mark.asyncio
 async def test_refresh_token_rejected_as_bearer(client: AsyncClient):
@@ -181,7 +181,7 @@ async def test_reset_token_rejected_as_bearer(client: AsyncClient):
     assert resp.status_code == 401
 
 
-# ── Refresh / logout via cookie ──────────────────────────────────────
+# Refresh / logout via cookie
 
 @pytest.mark.asyncio
 async def test_refresh_rotates_cookie_and_revokes_old_token(client: AsyncClient):
@@ -233,7 +233,7 @@ async def test_logout_revokes_refresh_token(client: AsyncClient):
     assert resp.status_code == 401
 
 
-# ── Password reset ───────────────────────────────────────────────────
+# Password reset
 
 @pytest.mark.asyncio
 async def test_password_reset_flow(client: AsyncClient, monkeypatch):

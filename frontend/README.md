@@ -1,71 +1,56 @@
-# Frontend — AI BI Platform
+# Frontend
 
-## Overview
+Server-rendered Jinja2 templates styled with Tailwind CSS (CDN) and a small `main.css`. Each page's JavaScript calls the JSON API under `/api/v1`. There is no build step.
 
-The frontend is built with **Jinja2 templates** served by FastAPI, styled with **Tailwind CSS** and custom CSS, with **JavaScript** for interactivity.
+## How a page loads
 
-## Template Inheritance
+1. FastAPI returns the HTML from a template (`backend/app/routers/pages.py`).
+2. `main.js` checks the session with `/api/v1/auth/me` and redirects to `/login` if it is not valid.
+3. The page's own script (for example `quality.js`) fetches data with `api.js` and renders tables and Plotly charts.
+
+## Templates
 
 ```
-base.html                          ← Global base (head, CDNs, scripts)
-├── pages/home.html                ← Public landing page
-├── pages/login.html               ← Public login form
-├── pages/register.html            ← Public registration form
-├── errors/404.html                ← Not found page
-├── errors/500.html                ← Server error page
-└── base_dashboard.html            ← Authenticated layout (sidebar + navbar)
-    ├── pages/dashboard.html       ← Main dashboard
-    ├── pages/upload.html          ← Dataset upload
-    └── pages/settings.html        ← User settings
+base.html                     public layout: <head>, CDN scripts, shared JS
+├── pages/home.html, login.html, register.html, forgot_password.html,
+│   reset_password.html, terms.html, privacy.html
+├── errors/404.html, errors/500.html
+└── base_dashboard.html       logged-in layout: sidebar + navbar
+    ├── pages/dashboard.html, upload.html, settings.html
+    ├── pages/profiling.html, quality.html, preprocessing.html,
+    │   eda.html, features.html          (share components/dataset_subnav.html)
+    └── pages/experiments.html, experiment_detail.html
 ```
 
-## Components
+| Component | Purpose |
+|---|---|
+| `components/sidebar.html` | Main navigation, theme toggle, user info |
+| `components/navbar.html` | Dataset search, notifications, user menu |
+| `components/dataset_subnav.html` | Tabs between the per-dataset pages |
+| `components/icons.html` | `icon(name)` macro with inline SVG icons |
+| `components/alerts.html`, `loading.html`, `footer.html` | Small shared pieces |
 
-| Component | File | Purpose |
-|---|---|---|
-| Navbar | `components/navbar.html` | Top navigation bar with search, notifications, user dropdown |
-| Sidebar | `components/sidebar.html` | Left sidebar with navigation links |
-| Footer | `components/footer.html` | Page footer with copyright and links |
-| Alerts | `components/alerts.html` | Dismissible alert notifications |
-| Loading | `components/loading.html` | Loading spinner overlay |
+## JavaScript
 
-## CSS Classes
+| File | Purpose |
+|---|---|
+| `api.js` | `fetch` wrapper: adds the access token, refreshes it once on a 401 |
+| `utils.js` | Formatting, `escapeHtml`, toasts |
+| `main.js` | Session check, sidebar, theme, navbar search and notifications |
+| `ml_common.js` | Helpers shared by the AutoML pages |
+| `auth.js`, `settings.js`, `dashboard.js`, `upload.js` | One per page |
+| `profiling.js`, `quality.js`, `preprocessing.js`, `eda.js`, `features.js` | Per-dataset pages |
+| `experiments.js`, `experiment_detail.js` | Training form and leaderboard/evaluation |
 
-### Glassmorphism
-```css
-.glass { /* Semi-transparent card with backdrop blur */ }
-```
+Anything that comes from user data (file names, CSV headers, cell values) must go through `escapeHtml()` before it is put into `innerHTML`.
 
-### Buttons
-```css
-.btn-primary    { /* Blue gradient button */ }
-.btn-secondary  { /* Gray outline button */ }
-.btn-danger     { /* Red button */ }
-.btn-ghost      { /* Transparent button */ }
-```
+## CSS
 
-### Cards
-```css
-.card           { /* Dark card with subtle border */ }
-.card-hover     { /* Card with hover lift effect */ }
-```
+`main.css` only holds what Tailwind doesn't: theme variables, `.glass` panels, `.btn-*` and `.card` styles, badges, the drop zone, light-mode overrides and animations.
 
-## JavaScript Modules
+## Adding a page
 
-| Module | File | Purpose |
-|---|---|---|
-| Main | `js/main.js` | Global initialization, sidebar toggle, dropdowns |
-| API | `js/api.js` | Fetch wrapper with auth headers |
-| Auth | `js/auth.js` | Login/register form handlers, password strength |
-| Dashboard | `js/dashboard.js` | Dashboard data loading, chart placeholders |
-| Upload | `js/upload.js` | Drag-and-drop upload, progress bar |
-| Settings | `js/settings.js` | Tab switching, form handlers |
-| Utils | `js/utils.js` | Shared utilities (formatDate, formatNumber, etc.) |
-
-## Adding a New Page
-
-1. Create `templates/pages/new_page.html`
-2. Extend `base_dashboard.html` (authenticated) or `base.html` (public)
-3. Add a route in `backend/app/main.py`
-4. Add navigation link in `components/sidebar.html`
-5. Create `static/js/new_page.js` if needed
+1. Create `templates/pages/my_page.html` extending `base_dashboard.html` (or `base.html` for a public page).
+2. Add a route in `backend/app/routers/pages.py` using `render(...)`.
+3. Add a link in `components/sidebar.html`.
+4. Create `static/js/my_page.js` and include it in the template's `page_scripts` block.
